@@ -33,11 +33,11 @@ new Vue({
     // name: "#numberone",
     //     render: h => h(App)
     // }).$mount('#app')
-        el: "#app",
-        components: {
-            App,
-        }
-    });
+    el: "#root",
+    components: {
+        App,
+    }
+});
 
     // new Vue({
     //     name: "#numbertwo",

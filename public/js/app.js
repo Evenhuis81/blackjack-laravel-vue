@@ -109,20 +109,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      nickname: !!localStorage.getItem('nickname')
+      nickname: false,
+      computerchips: false,
+      playerchips: false
     };
   },
   components: {
     Login: _components_Login_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
     Playfield: _components_Playfield_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
-  } // mounted() {
-  //     if (localStorage.getItem('nickname')) {
-  //         this.nickname = true;
-  //     } else {
-  //         this.nickname = false;
-  //     }
-  // }
-
+  },
+  methods: {
+    onLoginGuest: function onLoginGuest() {
+      this.nickname = localStorage.getItem("nickname");
+      this.computerchips = localStorage.getItem("computerchips");
+      this.playerchips = localStorage.getItem("playerchips");
+    }
+  },
+  mounted: function mounted() {
+    if (localStorage.getItem("nickname")) {
+      this.nickname = localStorage.getItem("nickname");
+      this.computerchips = localStorage.getItem("computerchips");
+      this.playerchips = localStorage.getItem("playerchips");
+    }
+  }
 });
 
 /***/ }),
@@ -181,10 +190,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      csrf: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      //   csrf: document
+      //     .querySelector('meta[name="csrf-token"]')
+      //     .getAttribute("content"),
       errors: [],
       nickname: null,
       modalIsActive: false
@@ -198,22 +213,24 @@ __webpack_require__.r(__webpack_exports__);
       this.modalIsActive = false;
     },
     checkForm: function checkForm(e) {
+      e.preventDefault();
       this.errors = [];
 
       if (this.nickname.length > 2) {
         if (localStorage) {
-          localStorage.setItem('nickname', this.nickname);
-          localStorage.setItem('playerchips', 1000);
-          localStorage.setItem('computerchips', 1000);
+          localStorage.setItem("nickname", this.nickname);
+          localStorage.setItem("playerchips", 1000);
+          localStorage.setItem("computerchips", 1000);
+          this.$emit("loginguest", this.nickname); //   alert("set");
+
           return;
         } else {
-          alert('No support. Use a fallback such as browser cookies or store on the server.');
+          alert("No support. Use a fallback such as browser cookies or store on the server.");
           return;
         }
       }
 
-      this.errors.push('Nickname has to be at least 3 characters.');
-      e.preventDefault();
+      this.errors.push("Nickname has to be at least 3 characters.");
     }
   }
 });
@@ -314,7 +331,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
+  props: {
+    localData: {
+      type: Array,
+      required: true
+    }
+  },
   data: function data() {
     return {
       playerScore: 0,
@@ -322,9 +354,9 @@ __webpack_require__.r(__webpack_exports__);
       startGame: false,
       pccards: [0, 0, 0],
       playercards: [0, 0],
-      playerName: localStorage.getItem('nickname'),
-      playerChips: localStorage.getItem('playerchips'),
-      computerChips: localStorage.getItem('computerchips')
+      playerName: this.localData[0],
+      computerChips: this.localData[1],
+      playerChips: this.localData[2]
     };
   },
   methods: {
@@ -339,6 +371,13 @@ __webpack_require__.r(__webpack_exports__);
       if (card === 0) {
         return "cards/back.png";
       }
+    }
+  },
+  watch: {
+    localData: function localData(val) {
+      this.playerName = this.localData[0];
+      this.computerChips = this.localData[1];
+      this.playerChips = this.localData[2];
     }
   }
 });
@@ -357,7 +396,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\nhtml[data-v-6bdc8b8e], body[data-v-6bdc8b8e] {\n    background-color: #fff;\n    color: #636b6f;\n    font-family: 'Nunito', sans-serif;\n    font-weight: 200;\n    height: 100vh;\n    margin: 0;\n}\n.play[data-v-6bdc8b8e] {\n    margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\n    height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\n    -webkit-box-align: center;\n            align-items: center;\n    display: -webkit-box;\n    display: flex;\n    -webkit-box-pack: center;\n            justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\n    position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\n    position: absolute;\n    right: 10px;\n    top: 18px;\n}\n.content[data-v-6bdc8b8e] {\n    text-align: center;\n}\n.title[data-v-6bdc8b8e] {\n    font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\n    color: #636b6f;\n    padding: 0 25px;\n    font-size: 13px;\n    font-weight: 600;\n    letter-spacing: .1rem;\n    text-decoration: none;\n    text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\n    margin-bottom: 30px;\n}\n", ""]);
+exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\nbody[data-v-6bdc8b8e] {\n  background-color: #fff;\n  color: #636b6f;\n  font-family: \"Nunito\", sans-serif;\n  font-weight: 200;\n  height: 100vh;\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\n  -webkit-box-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: flex;\n  -webkit-box-pack: center;\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\n  position: absolute;\n  right: 10px;\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\n  color: #636b6f;\n  padding: 0 25px;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.1rem;\n  text-decoration: none;\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\n  margin-bottom: 30px;\n}\n", ""]);
 
 // exports
 
@@ -1484,7 +1523,8 @@ var render = function() {
             value: !_vm.nickname,
             expression: "!nickname"
           }
-        ]
+        ],
+        on: { loginguest: _vm.onLoginGuest }
       }),
       _vm._v(" "),
       _c("playfield", {
@@ -1495,7 +1535,8 @@ var render = function() {
             value: _vm.nickname,
             expression: "nickname"
           }
-        ]
+        ],
+        attrs: { localData: [_vm.nickname, _vm.computerchips, _vm.playerchips] }
       })
     ],
     1
@@ -1524,9 +1565,7 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "content" }, [
-    _c("div", { staticClass: "title m-b-md" }, [
-      _vm._v("\n        Blackjack\n    ")
-    ]),
+    _c("div", { staticClass: "title m-b-md" }, [_vm._v("Blackjack")]),
     _vm._v(" "),
     _vm._m(0),
     _vm._v(" "),
@@ -1560,60 +1599,48 @@ var render = function() {
             })
           ]),
           _vm._v(" "),
-          _c(
-            "form",
-            {
-              attrs: { action: "/", method: "post" },
-              on: { submit: _vm.checkForm }
-            },
-            [
-              _c("section", { staticClass: "modal-card-body" }, [
-                _c("div", { staticClass: "control has-text-centered" }, [
-                  _c("input", {
-                    directives: [
-                      {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.nickname,
-                        expression: "nickname"
-                      }
-                    ],
-                    staticClass: "has-text-centered",
-                    attrs: {
-                      id: "nickname",
-                      type: "text",
-                      name: "nickname",
-                      placeholder: "Enter Nickname"
-                    },
-                    domProps: { value: _vm.nickname },
-                    on: {
-                      input: function($event) {
-                        if ($event.target.composing) {
-                          return
-                        }
-                        _vm.nickname = $event.target.value
-                      }
+          _c("form", { on: { submit: _vm.checkForm } }, [
+            _c("section", { staticClass: "modal-card-body" }, [
+              _c("div", { staticClass: "control has-text-centered" }, [
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.nickname,
+                      expression: "nickname"
                     }
-                  }),
-                  _vm._v(" "),
-                  _c("input", {
-                    attrs: { type: "hidden", name: "_token" },
-                    domProps: { value: _vm.csrf }
-                  })
-                ]),
-                _vm._v(" "),
-                _vm.errors.length
-                  ? _c("p", { staticClass: "help is-danger" }, [
-                      _vm._v(_vm._s(_vm.errors[0]))
-                    ])
-                  : _c("p", { staticClass: "help" }, [
-                      _vm._v("at least 3 characters")
-                    ])
+                  ],
+                  staticClass: "has-text-centered",
+                  attrs: {
+                    id: "nickname",
+                    type: "text",
+                    name: "nickname",
+                    placeholder: "Enter Nickname"
+                  },
+                  domProps: { value: _vm.nickname },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.nickname = $event.target.value
+                    }
+                  }
+                })
               ]),
               _vm._v(" "),
-              _vm._m(1)
-            ]
-          )
+              _vm.errors.length
+                ? _c("p", { staticClass: "help is-danger" }, [
+                    _vm._v(_vm._s(_vm.errors[0]))
+                  ])
+                : _c("p", { staticClass: "help" }, [
+                    _vm._v("at least 3 characters")
+                  ])
+            ]),
+            _vm._v(" "),
+            _vm._m(1)
+          ])
         ])
       ]
     )
@@ -1697,16 +1724,10 @@ var render = function() {
           ),
           _vm._v(" "),
           _c("h1", { staticClass: "title" }, [
-            _vm._v(
-              "\n                    Welcome to Blackjack, " +
-                _vm._s(_vm.playerName) +
-                " ...\n                "
-            )
+            _vm._v("Welcome to Blackjack, " + _vm._s(_vm.playerName) + " ...")
           ]),
           _vm._v(" "),
-          _c("h2", { staticClass: "subtitle" }, [
-            _vm._v("\n                    Have fun!\n                ")
-          ])
+          _c("h2", { staticClass: "subtitle" }, [_vm._v("Have fun!")])
         ])
       ])
     ]),
@@ -1716,7 +1737,7 @@ var render = function() {
         _c("div", { staticClass: "level-item has-text-centered" }, [
           _c("div", [
             _c("p", { staticClass: "title has-text-weight-bold" }, [
-              _vm._v("Dealer")
+              _vm._v("Computer")
             ]),
             _vm._v(" "),
             _c(
@@ -1844,7 +1865,7 @@ var staticRenderFns = [
         _c(
           "p",
           { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
-          [_vm._v("Bet: ")]
+          [_vm._v("Bet:")]
         ),
         _vm._v(" "),
         _c(
@@ -14129,7 +14150,7 @@ new Vue({
   // name: "#numberone",
   //     render: h => h(App)
   // }).$mount('#app')
-  el: "#app",
+  el: "#root",
   components: {
     App: _App_vue__WEBPACK_IMPORTED_MODULE_0__["default"]
   }
@@ -14319,8 +14340,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
