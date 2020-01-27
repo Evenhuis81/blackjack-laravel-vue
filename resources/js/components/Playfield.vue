@@ -1,6 +1,7 @@
 <template>
   <div class="box">
-    <section class="hero">
+    <section class="hero" v-show="!playerName">
+      <!-- <section class="hero"> -->
       <div class="hero-body">
         <div class="container">
           <button @click="reset" class="button is-danger is-light">Reset</button>
@@ -29,17 +30,12 @@
         <div class="level-item has-text-centered">
           <div style="height: 122px;"></div>
           <div
-            disabled
             v-show="pcScore"
             style="margin-right: 10px; opacity: 1; cursor: default"
             class="button is-rounded is-primary is-small has-text-black"
           >{{ pcScore }}</div>
           <div v-for="(pccard, index) in pccards" :key="index">
             <img :src="pngcard(pccard)" alt="pngimage" style="height: 122px;" />
-            <!-- <p class="heading" v-if="pccard === 0">blank</p> -->
-            <!-- <img src="cards/back.png" alt="card" style="height: 122px; width: auto;"> -->
-
-            <!-- <p class="heading" v-else>{{ pccard }}</p> -->
           </div>
         </div>
       </nav>
@@ -58,11 +54,16 @@
 
       <nav class="level">
         <div class="level-item has-text-centered">
-          <!-- <div v-for="(playercard, index) in playercards" :key="index"> -->
           <div style="height: 122px;"></div>
-          <!-- <p class="heading" v-if="playercard === 0">blank</p>
-          <p class="heading" v-else>{{ playercard }}</p>-->
-          <!-- </div> -->
+            <div
+            disabled
+            v-show="pcScore"
+            style="margin-right: 10px; opacity: 1; cursor: default"
+            class="button is-rounded is-primary is-small has-text-black"
+          >{{ playerScore }}</div>
+            <div v-for="(playercard, index) in playercards" :key="index">
+            <img :src="pngcard(playercard)" alt="pngimage" style="height: 122px;" />
+          </div>
         </div>
       </nav>
 
@@ -80,12 +81,21 @@
 
       <nav class="level">
         <div class="level-item has-text-centered">
-          <p class="heading" style="margin-right: 20px;">Bet:</p>
-          <button style="margin-right: 10px;" class="button is-rounded is-primary is-small">25</button>
-          <button style="margin-right: 10px;" class="button is-rounded is-link">50</button>
-          <button style="margin-right: 10px;" class="button is-rounded is-success is-normal">100</button>
-          <button style="margin-right: 10px;" class="button is-rounded is-warning is-medium">250</button>
-          <button class="button is-rounded is-danger is-large">500</button>
+          <p class="heading" style="margin-right: 20px;">{{ betMsg }}</p>
+          <button @click="placeBet(25)" v-show="!bet || bet === 25" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-primary is-small">25</button>
+          <button @click="placeBet(50)" v-show="!bet || bet === 50" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-link">50</button>
+          <button @click="placeBet(100)" v-show="!bet || bet === 100" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-success is-normal">100</button>
+          <button @click="placeBet(250)" v-show="!bet || bet === 250" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-warning is-medium">250</button>
+          <button @click="placeBet(500)" v-show="!bet || bet === 500" :style="[betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-danger is-large">500</button>
+        </div>
+      </nav>
+      <nav class="level" v-show="chooseNext">
+        <div class="level-item has-text-centered">
+          <p class="heading" style="margin-right: 20px;">{{ chooseMsg }}</p>
+          <button :style="[baseStyle]" class="button is-black">Draw</button>
+          <button :style="[baseStyle]" class="button is-light">Stand</button>
+          <button :style="[baseStyle]" class="button is-warning">Split</button>
+          <button class="button is-danger">Double</button>
         </div>
       </nav>
     </div>
@@ -102,17 +112,37 @@ export default {
   },
   data() {
     return {
-      playerScore: 0,
-      pcScore: 1,
+      betMsg: "Place your Bid: ",
+      chooseNext: false,
+      chooseMsg: "Choose: ",
+      betButtonDisabled: false,
+      baseStyle: {
+        marginRight: '10px',
+      },
+      disabledBetButtonStyle: {
+        opacity: "1",
+        cursor: "default"
+      },
+      bet: 0,
+      deck: [],
+      suits: ["spade", "diamond", "club", "heart"],
+      values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
+      playerScore: "",
+      pcScore: "",
       startGame: false,
-      pccards: [0, 0, 0],
-      playercards: [0, 0],
+      pccards: [],
+      playercards: [],
       playerName: this.localData[0],
       computerChips: this.localData[1],
       playerChips: this.localData[2]
     };
   },
   methods: {
+    betButtonStyling() {
+      if (this.bet !== 0) {
+        return this.disabledBetButtonStyle
+      }
+    },
     reset() {
       localStorage.clear();
       location.reload();
@@ -121,9 +151,84 @@ export default {
       this.startGame = true;
     },
     pngcard(card) {
-      if (card === 0) {
+      if (card === "blank") {
         return "cards/back.png";
       }
+      return "cards/" + card.Suit + "_" + card.Value + ".png";
+    },
+    getDeck() {
+      for(let i = 0; i < this.suits.length; i++)
+      {
+        for(let x = 0; x < this.values.length; x++)
+        {
+          let card = {Value: this.values[x], Suit: this.suits[i]};
+          this.deck.push(card);
+        }
+      }
+    },
+    shuffleDeck() {
+      for (let i = 0; i < 1000; i++)
+      {
+        let location1 = Math.floor((Math.random() * this.deck.length));
+        let location2 = Math.floor((Math.random() * this.deck.length));
+        let tmp = this.deck[location1];
+
+        this.deck[location1] = this.deck[location2];
+        this.deck[location2] = tmp;
+      }
+    },
+    placeBet(bidvalue) {
+      this.betMsg = "Your Bet: "
+      this.bet = bidvalue
+      this.betButtonDisabled = true
+
+      setTimeout(this.draw, 300, 'pc');
+      setTimeout(this.pushBlank, 600);
+      setTimeout(this.draw, 900, 'player');
+      setTimeout(this.draw, 1200, 'player');
+      setTimeout(this.setChoose, 1500);
+      setTimeout(this.setScore, 1500);
+    },
+    setScore() {
+      this.pcScore = 0
+      this.playerScore = 0
+      console.log('setting score')
+      for (let index = 0; index < this.pccards.length; index++) {
+        if (this.pccards[index] === "blank") {
+          continue;
+        }
+        // if (this.pccards[index].Value === "jack" || this.pccards[index].Value === "queen" || this.pccards[index].Value === "king") {
+        if (this.pccards[index].Value in ["jack", "queen", "king"]) {
+          console.log( 'elsepcjqk')
+          this.pcScore += 10
+        } else {
+          console.log( 'elsepc')
+          this.pcScore += this.pccards[index].Value
+          }
+        }
+      for (let index = 0; index < this.playercards.length; index++) {
+        // if (playercards[index] === "blank") {
+        //   continue;
+        // }
+        if (this.playercards[index].Value === "jack" || "queen" || "king") {
+          console.log( 'elseplayerjqk')
+          this.pcScore += 10
+        } else {
+          console.log( 'elseplayer')
+          this.pcScore += this.playercards[index].Value
+          }          
+        }
+      },
+    setChoose() {
+      this.chooseNext = true
+    },
+    pushBlank() {
+      this.pccards.push("blank")
+    },
+    draw(val) {
+      let cardindex = Math.floor(Math.random() * this.deck.length);
+      let drawnCard = this.deck.splice(cardindex, 1);
+      val === "pc" ? this.pccards.push(drawnCard[0]) : val === "player" ? this.playercards.push(drawnCard[0]) : "";
     }
   },
   watch: {
@@ -132,6 +237,10 @@ export default {
       this.computerChips = this.localData[1];
       this.playerChips = this.localData[2];
     }
+  },
+  mounted() {
+    this.getDeck();
+    this.shuffleDeck();
   }
-};
+}
 </script>

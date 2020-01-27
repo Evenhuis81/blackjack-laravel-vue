@@ -340,6 +340,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -349,17 +359,37 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
-      playerScore: 0,
-      pcScore: 1,
+      betMsg: "Place your Bid: ",
+      chooseNext: false,
+      chooseMsg: "Choose: ",
+      betButtonDisabled: false,
+      baseStyle: {
+        marginRight: '10px'
+      },
+      disabledBetButtonStyle: {
+        opacity: "1",
+        cursor: "default"
+      },
+      bet: 0,
+      deck: [],
+      suits: ["spade", "diamond", "club", "heart"],
+      values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
+      playerScore: "",
+      pcScore: "",
       startGame: false,
-      pccards: [0, 0, 0],
-      playercards: [0, 0],
+      pccards: [],
+      playercards: [],
       playerName: this.localData[0],
       computerChips: this.localData[1],
       playerChips: this.localData[2]
     };
   },
   methods: {
+    betButtonStyling: function betButtonStyling() {
+      if (this.bet !== 0) {
+        return this.disabledBetButtonStyle;
+      }
+    },
     reset: function reset() {
       localStorage.clear();
       location.reload();
@@ -368,9 +398,86 @@ __webpack_require__.r(__webpack_exports__);
       this.startGame = true;
     },
     pngcard: function pngcard(card) {
-      if (card === 0) {
+      if (card === "blank") {
         return "cards/back.png";
       }
+
+      return "cards/" + card.Suit + "_" + card.Value + ".png";
+    },
+    getDeck: function getDeck() {
+      for (var i = 0; i < this.suits.length; i++) {
+        for (var x = 0; x < this.values.length; x++) {
+          var card = {
+            Value: this.values[x],
+            Suit: this.suits[i]
+          };
+          this.deck.push(card);
+        }
+      }
+    },
+    shuffleDeck: function shuffleDeck() {
+      for (var i = 0; i < 1000; i++) {
+        var location1 = Math.floor(Math.random() * this.deck.length);
+        var location2 = Math.floor(Math.random() * this.deck.length);
+        var tmp = this.deck[location1];
+        this.deck[location1] = this.deck[location2];
+        this.deck[location2] = tmp;
+      }
+    },
+    placeBet: function placeBet(bidvalue) {
+      this.betMsg = "Your Bet: ";
+      this.bet = bidvalue;
+      this.betButtonDisabled = true;
+      setTimeout(this.draw, 300, 'pc');
+      setTimeout(this.pushBlank, 600);
+      setTimeout(this.draw, 900, 'player');
+      setTimeout(this.draw, 1200, 'player');
+      setTimeout(this.setChoose, 1500);
+      setTimeout(this.setScore, 1500);
+    },
+    setScore: function setScore() {
+      this.pcScore = 0;
+      this.playerScore = 0;
+      console.log('setting score');
+
+      for (var index = 0; index < this.pccards.length; index++) {
+        if (this.pccards[index] === "blank") {
+          continue;
+        } // if (this.pccards[index].Value === "jack" || this.pccards[index].Value === "queen" || this.pccards[index].Value === "king") {
+
+
+        if (this.pccards[index].Value in ["jack", "queen", "king"]) {
+          console.log('elsepcjqk');
+          this.pcScore += 10;
+        } else {
+          console.log('elsepc');
+          this.pcScore += this.pccards[index].Value;
+        }
+      }
+
+      for (var _index = 0; _index < this.playercards.length; _index++) {
+        // if (playercards[index] === "blank") {
+        //   continue;
+        // }
+        if (this.playercards[_index].Value === "jack" || "queen" || "king") {
+          console.log('elseplayerjqk');
+          this.pcScore += 10;
+        } else {
+          console.log('elseplayer');
+          this.pcScore += this.playercards[_index].Value;
+        }
+      }
+    },
+    setChoose: function setChoose() {
+      this.chooseNext = true;
+    },
+    pushBlank: function pushBlank() {
+      this.pccards.push("blank");
+    },
+    draw: function draw(val) {
+      var cardindex = Math.floor(Math.random() * this.deck.length);
+      var drawnCard = this.deck.splice(cardindex, 1);
+      val === "pc" ? this.pccards.push(drawnCard[0]) : val === "player" ? this.playercards.push(drawnCard[0]) : "";
     }
   },
   watch: {
@@ -379,6 +486,10 @@ __webpack_require__.r(__webpack_exports__);
       this.computerChips = this.localData[1];
       this.playerChips = this.localData[2];
     }
+  },
+  mounted: function mounted() {
+    this.getDeck();
+    this.shuffleDeck();
   }
 });
 
@@ -396,7 +507,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\nbody[data-v-6bdc8b8e] {\n  background-color: #fff;\n  color: #636b6f;\n  font-family: \"Nunito\", sans-serif;\n  font-weight: 200;\n  height: 100vh;\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\n  -webkit-box-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: flex;\n  -webkit-box-pack: center;\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\n  position: absolute;\n  right: 10px;\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\n  color: #636b6f;\n  padding: 0 25px;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.1rem;\n  text-decoration: none;\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\n  margin-bottom: 30px;\n}\n", ""]);
+exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\r\nbody[data-v-6bdc8b8e] {\r\n  background-color: #fff;\r\n  color: #636b6f;\r\n  font-family: \"Nunito\", sans-serif;\r\n  font-weight: 200;\r\n  height: 100vh;\r\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\r\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\r\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\r\n  -webkit-box-align: center;\r\n          align-items: center;\r\n  display: -webkit-box;\r\n  display: flex;\r\n  -webkit-box-pack: center;\r\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\r\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\r\n  position: absolute;\r\n  right: 10px;\r\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\r\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\r\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\r\n  color: #636b6f;\r\n  padding: 0 25px;\r\n  font-size: 13px;\r\n  font-weight: 600;\r\n  letter-spacing: 0.1rem;\r\n  text-decoration: none;\r\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\r\n  margin-bottom: 30px;\n}\r\n", ""]);
 
 // exports
 
@@ -1711,26 +1822,40 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "box" }, [
-    _c("section", { staticClass: "hero" }, [
-      _c("div", { staticClass: "hero-body" }, [
-        _c("div", { staticClass: "container" }, [
-          _c(
-            "button",
-            {
-              staticClass: "button is-danger is-light",
-              on: { click: _vm.reset }
-            },
-            [_vm._v("Reset")]
-          ),
-          _vm._v(" "),
-          _c("h1", { staticClass: "title" }, [
-            _vm._v("Welcome to Blackjack, " + _vm._s(_vm.playerName) + " ...")
-          ]),
-          _vm._v(" "),
-          _c("h2", { staticClass: "subtitle" }, [_vm._v("Have fun!")])
+    _c(
+      "section",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: !_vm.playerName,
+            expression: "!playerName"
+          }
+        ],
+        staticClass: "hero"
+      },
+      [
+        _c("div", { staticClass: "hero-body" }, [
+          _c("div", { staticClass: "container" }, [
+            _c(
+              "button",
+              {
+                staticClass: "button is-danger is-light",
+                on: { click: _vm.reset }
+              },
+              [_vm._v("Reset")]
+            ),
+            _vm._v(" "),
+            _c("h1", { staticClass: "title" }, [
+              _vm._v("Welcome to Blackjack, " + _vm._s(_vm.playerName) + " ...")
+            ]),
+            _vm._v(" "),
+            _c("h2", { staticClass: "subtitle" }, [_vm._v("Have fun!")])
+          ])
         ])
-      ])
-    ]),
+      ]
+    ),
     _vm._v(" "),
     _c("div", [
       _c("nav", { staticClass: "level" }, [
@@ -1776,8 +1901,7 @@ var render = function() {
                   "margin-right": "10px",
                   opacity: "1",
                   cursor: "default"
-                },
-                attrs: { disabled: "" }
+                }
               },
               [_vm._v(_vm._s(_vm.pcScore))]
             ),
@@ -1797,7 +1921,48 @@ var render = function() {
       _vm._v(" "),
       _vm._m(0),
       _vm._v(" "),
-      _vm._m(1),
+      _c("nav", { staticClass: "level" }, [
+        _c(
+          "div",
+          { staticClass: "level-item has-text-centered" },
+          [
+            _c("div", { staticStyle: { height: "122px" } }),
+            _vm._v(" "),
+            _c(
+              "div",
+              {
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: _vm.pcScore,
+                    expression: "pcScore"
+                  }
+                ],
+                staticClass:
+                  "button is-rounded is-primary is-small has-text-black",
+                staticStyle: {
+                  "margin-right": "10px",
+                  opacity: "1",
+                  cursor: "default"
+                },
+                attrs: { disabled: "" }
+              },
+              [_vm._v(_vm._s(_vm.playerScore))]
+            ),
+            _vm._v(" "),
+            _vm._l(_vm.playercards, function(playercard, index) {
+              return _c("div", { key: index }, [
+                _c("img", {
+                  staticStyle: { height: "122px" },
+                  attrs: { src: _vm.pngcard(playercard), alt: "pngimage" }
+                })
+              ])
+            })
+          ],
+          2
+        )
+      ]),
       _vm._v(" "),
       _c("nav", { staticClass: "level" }, [
         _c("div", { staticClass: "level-item has-text-centered" }, [
@@ -1818,7 +1983,179 @@ var render = function() {
         ])
       ]),
       _vm._v(" "),
-      _vm._m(2)
+      _c("nav", { staticClass: "level" }, [
+        _c("div", { staticClass: "level-item has-text-centered" }, [
+          _c(
+            "p",
+            { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
+            [_vm._v(_vm._s(_vm.betMsg))]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: !_vm.bet || _vm.bet === 25,
+                  expression: "!bet || bet === 25"
+                }
+              ],
+              staticClass: "button is-rounded is-primary is-small",
+              style: [_vm.baseStyle, _vm.betButtonStyling()],
+              attrs: { disabled: _vm.betButtonDisabled },
+              on: {
+                click: function($event) {
+                  return _vm.placeBet(25)
+                }
+              }
+            },
+            [_vm._v("25")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: !_vm.bet || _vm.bet === 50,
+                  expression: "!bet || bet === 50"
+                }
+              ],
+              staticClass: "button is-rounded is-link",
+              style: [_vm.baseStyle, _vm.betButtonStyling()],
+              attrs: { disabled: _vm.betButtonDisabled },
+              on: {
+                click: function($event) {
+                  return _vm.placeBet(50)
+                }
+              }
+            },
+            [_vm._v("50")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: !_vm.bet || _vm.bet === 100,
+                  expression: "!bet || bet === 100"
+                }
+              ],
+              staticClass: "button is-rounded is-success is-normal",
+              style: [_vm.baseStyle, _vm.betButtonStyling()],
+              attrs: { disabled: _vm.betButtonDisabled },
+              on: {
+                click: function($event) {
+                  return _vm.placeBet(100)
+                }
+              }
+            },
+            [_vm._v("100")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: !_vm.bet || _vm.bet === 250,
+                  expression: "!bet || bet === 250"
+                }
+              ],
+              staticClass: "button is-rounded is-warning is-medium",
+              style: [_vm.baseStyle, _vm.betButtonStyling()],
+              attrs: { disabled: _vm.betButtonDisabled },
+              on: {
+                click: function($event) {
+                  return _vm.placeBet(250)
+                }
+              }
+            },
+            [_vm._v("250")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: !_vm.bet || _vm.bet === 500,
+                  expression: "!bet || bet === 500"
+                }
+              ],
+              staticClass: "button is-rounded is-danger is-large",
+              style: [_vm.betButtonStyling()],
+              attrs: { disabled: _vm.betButtonDisabled },
+              on: {
+                click: function($event) {
+                  return _vm.placeBet(500)
+                }
+              }
+            },
+            [_vm._v("500")]
+          )
+        ])
+      ]),
+      _vm._v(" "),
+      _c(
+        "nav",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.chooseNext,
+              expression: "chooseNext"
+            }
+          ],
+          staticClass: "level"
+        },
+        [
+          _c("div", { staticClass: "level-item has-text-centered" }, [
+            _c(
+              "p",
+              {
+                staticClass: "heading",
+                staticStyle: { "margin-right": "20px" }
+              },
+              [_vm._v(_vm._s(_vm.chooseMsg))]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              { staticClass: "button is-black", style: [_vm.baseStyle] },
+              [_vm._v("Draw")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              { staticClass: "button is-light", style: [_vm.baseStyle] },
+              [_vm._v("Stand")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              { staticClass: "button is-warning", style: [_vm.baseStyle] },
+              [_vm._v("Split")]
+            ),
+            _vm._v(" "),
+            _c("button", { staticClass: "button is-danger" }, [
+              _vm._v("Double")
+            ])
+          ])
+        ]
+      )
     ])
   ])
 }
@@ -1842,70 +2179,6 @@ var staticRenderFns = [
             },
             [_vm._v("Blackjack pays 3:2")]
           )
-        ])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
-        _c("div", { staticStyle: { height: "122px" } })
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
-        _c(
-          "p",
-          { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
-          [_vm._v("Bet:")]
-        ),
-        _vm._v(" "),
-        _c(
-          "button",
-          {
-            staticClass: "button is-rounded is-primary is-small",
-            staticStyle: { "margin-right": "10px" }
-          },
-          [_vm._v("25")]
-        ),
-        _vm._v(" "),
-        _c(
-          "button",
-          {
-            staticClass: "button is-rounded is-link",
-            staticStyle: { "margin-right": "10px" }
-          },
-          [_vm._v("50")]
-        ),
-        _vm._v(" "),
-        _c(
-          "button",
-          {
-            staticClass: "button is-rounded is-success is-normal",
-            staticStyle: { "margin-right": "10px" }
-          },
-          [_vm._v("100")]
-        ),
-        _vm._v(" "),
-        _c(
-          "button",
-          {
-            staticClass: "button is-rounded is-warning is-medium",
-            staticStyle: { "margin-right": "10px" }
-          },
-          [_vm._v("250")]
-        ),
-        _vm._v(" "),
-        _c("button", { staticClass: "button is-rounded is-danger is-large" }, [
-          _vm._v("500")
         ])
       ])
     ])
@@ -14340,8 +14613,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
