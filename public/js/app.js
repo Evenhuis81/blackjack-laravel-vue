@@ -110,7 +110,6 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       nickname: false,
-      computerchips: false,
       playerchips: false
     };
   },
@@ -119,16 +118,17 @@ __webpack_require__.r(__webpack_exports__);
     Playfield: _components_Playfield_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
   },
   methods: {
-    onLoginGuest: function onLoginGuest() {
+    setLocalData: function setLocalData() {
       this.nickname = localStorage.getItem("nickname");
-      this.computerchips = localStorage.getItem("computerchips");
+      this.playerchips = localStorage.getItem("playerchips");
+    },
+    setLocalChips: function setLocalChips() {
       this.playerchips = localStorage.getItem("playerchips");
     }
   },
   mounted: function mounted() {
     if (localStorage.getItem("nickname")) {
       this.nickname = localStorage.getItem("nickname");
-      this.computerchips = localStorage.getItem("computerchips");
       this.playerchips = localStorage.getItem("playerchips");
     }
   }
@@ -220,8 +220,7 @@ __webpack_require__.r(__webpack_exports__);
         if (localStorage) {
           localStorage.setItem("nickname", this.nickname);
           localStorage.setItem("playerchips", 1000);
-          localStorage.setItem("computerchips", 1000);
-          this.$emit("loginguest", this.nickname);
+          this.$emit("setLocalData", "");
           return;
         } else {
           alert("No support. Use a fallback such as browser cookies or store on the server.");
@@ -381,6 +380,14 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -390,33 +397,53 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
+      resultMessage: "",
       betMsg: "Place your Bid: ",
       chooseNext: false,
       chooseMsg: "Choose: ",
       betButtonDisabled: false,
       baseStyle: {
-        marginRight: "10px" // height: "40px"
-
+        marginRight: "10px"
       },
       disabledBetButtonStyle: {
         opacity: "1",
         cursor: "default"
       },
+      resultMsgStyle: {
+        visibility: 'hidden',
+        border: '1px solid black',
+        color: 'purple'
+      },
       bet: 0,
       deck: [],
       suits: ["spade", "diamond", "club", "heart"],
       values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
-      playerScore: 0,
+      pcAces: 0,
+      playerAces: 0,
       pcScore: 0,
-      startGame: false,
+      playerScore: 0,
       pccards: [],
       playercards: [],
+      // startGame: false,
       playerName: this.localData[0],
-      computerChips: this.localData[1],
-      playerChips: this.localData[2]
+      playerChips: this.localData[1]
     };
   },
   methods: {
+    resultMsgStyling: function resultMsgStyling() {
+      if (this.resultMessage === "BLACKJACK") {
+        this.resultMsgStyle.border = 'red solid 2px';
+        this.resultMsgStyle.color = 'red';
+      }
+
+      if (this.resultMessage) {// this.resultMsgStyle.visibility = 'visible' : this.resultMsgStyle.visibility = 'hidden'
+      }
+    },
+    resultVisible: function resultVisible() {
+      return {
+        visibility: this.resultMessage ? 'visible' : 'hidden'
+      };
+    },
     betButtonStyling: function betButtonStyling() {
       if (this.bet !== 0) {
         return this.disabledBetButtonStyle;
@@ -427,6 +454,7 @@ __webpack_require__.r(__webpack_exports__);
       location.reload();
     },
     startBlackjack: function startBlackjack() {
+      this.resultMsgAdditionStyle;
       this.startGame = true;
     },
     pngcard: function pngcard(card) {
@@ -461,35 +489,65 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     placeBet: function placeBet(bidvalue) {
+      // this.playerScore = 21;
+      // this.playercards = [1, 1];
+      // this.getResult("player");
+      // return;
       this.betMsg = "Your Bet: ";
       this.bet = bidvalue;
       this.betButtonDisabled = true;
+      this.setplayerChips(bidvalue);
       setTimeout(this.draw, 300, "pc");
       setTimeout(this.pushBlank, 600);
       setTimeout(this.draw, 900, "player");
       setTimeout(this.draw, 1200, "player");
-      setTimeout(this.setScore, 1200);
       setTimeout(this.setChoose, 1500);
     },
-    setScore: function setScore() {
-      for (var i = 0; i < this.pccards.length; i++) {
-        if (this.pccards[i] === "blank") {
-          continue;
-        }
+    setplayerChips: function setplayerChips(bid) {
+      var newVal = this.playerChips - bid;
+      localStorage.setItem("playerchips", newVal);
+      this.$emit("setLocalChipsData", "");
+    },
+    setScore: function setScore(val) {
+      if (val === "pc") {
+        var card = this.pccards[this.pccards.length - 1];
 
-        if (this.pccards[i].Value === "jack" || this.pccards[i].Value === "queen" || this.pccards[i].Value === "king") {
-          // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
+        if (card.Value === "1") {
+          this.pcAces += 1;
+          this.pcScore += 11;
+        } else if (card.Value === "jack" || card.Value === "queen" || card.Value === "king") {
           this.pcScore += 10;
         } else {
-          this.pcScore += parseInt(this.pccards[i].Value);
+          this.pcScore += parseInt(card.Value);
         }
+
+        this.getResult("pc");
       }
 
-      for (var j = 0; j < this.playercards.length; j++) {
-        if (this.playercards[j].Value === "jack" || this.playercards[j].Value === "queen" || this.playercards[j].Value === "king") {
+      if (val === "player") {
+        var _card = this.playercards[this.playercards.length - 1];
+
+        if (_card.Value === "1") {
+          this.playerAces += 1;
+          this.playerScore += 11; // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
+        } else if (_card.Value === "jack" || _card.Value === "queen" || _card.Value === "king") {
           this.playerScore += 10;
         } else {
-          this.playerScore += parseInt(this.playercards[j].Value);
+          this.playerScore += parseInt(_card.Value);
+        }
+
+        this.getResult("player");
+      }
+    },
+    getResult: function getResult(val) {
+      if (val === "player") {
+        if (this.playercards.length === 2) {
+          this.resultMessage = "BLACKJACK";
+          this.resultMsgStyling();
+          setTimeout(function () {
+            this.resultMessage = "";
+            this.resultMsgStyling();
+          }.bind(this), 3000);
         }
       }
     },
@@ -502,14 +560,22 @@ __webpack_require__.r(__webpack_exports__);
     draw: function draw(val) {
       var cardindex = Math.floor(Math.random() * this.deck.length);
       var drawnCard = this.deck.splice(cardindex, 1);
-      val === "pc" ? this.pccards.push(drawnCard[0]) : val === "player" ? this.playercards.push(drawnCard[0]) : "";
+
+      if (val === "pc") {
+        this.pccards.push(drawnCard[0]);
+        this.setScore("pc");
+      }
+
+      if (val === "player") {
+        this.playercards.push(drawnCard[0]);
+        this.setScore("player");
+      }
     }
   },
   watch: {
     localData: function localData(val) {
       this.playerName = this.localData[0];
-      this.computerChips = this.localData[1];
-      this.playerChips = this.localData[2];
+      this.playerChips = this.localData[1];
     }
   },
   mounted: function mounted() {
@@ -532,7 +598,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\nbody[data-v-6bdc8b8e] {\n  background-color: #fff;\n  color: #636b6f;\n  font-family: \"Nunito\", sans-serif;\n  font-weight: 200;\n  height: 100vh;\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\n  -webkit-box-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: flex;\n  -webkit-box-pack: center;\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\n  position: absolute;\n  right: 10px;\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\n  color: #636b6f;\n  padding: 0 25px;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.1rem;\n  text-decoration: none;\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\n  margin-bottom: 30px;\n}\n", ""]);
+exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\r\nbody[data-v-6bdc8b8e] {\r\n  background-color: #fff;\r\n  color: #636b6f;\r\n  font-family: \"Nunito\", sans-serif;\r\n  font-weight: 200;\r\n  height: 100vh;\r\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\r\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\r\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\r\n  -webkit-box-align: center;\r\n          align-items: center;\r\n  display: -webkit-box;\r\n  display: flex;\r\n  -webkit-box-pack: center;\r\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\r\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\r\n  position: absolute;\r\n  right: 10px;\r\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\r\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\r\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\r\n  color: #636b6f;\r\n  padding: 0 25px;\r\n  font-size: 13px;\r\n  font-weight: 600;\r\n  letter-spacing: 0.1rem;\r\n  text-decoration: none;\r\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\r\n  margin-bottom: 30px;\n}\r\n", ""]);
 
 // exports
 
@@ -1660,7 +1726,7 @@ var render = function() {
             expression: "!nickname"
           }
         ],
-        on: { loginguest: _vm.onLoginGuest }
+        on: { setLocalData: _vm.setLocalData }
       }),
       _vm._v(" "),
       _c("playfield", {
@@ -1672,7 +1738,8 @@ var render = function() {
             expression: "nickname"
           }
         ],
-        attrs: { localData: [_vm.nickname, _vm.computerchips, _vm.playerchips] }
+        attrs: { localData: [_vm.nickname, _vm.playerchips] },
+        on: { setLocalChipsData: _vm.setLocalChips }
       })
     ],
     1
@@ -1883,24 +1950,7 @@ var render = function() {
     ),
     _vm._v(" "),
     _c("div", [
-      _c("nav", { staticClass: "level" }, [
-        _c("div", { staticClass: "level-item has-text-centered" }, [
-          _c("div", [
-            _c("p", { staticClass: "title has-text-weight-bold" }, [
-              _vm._v("Computer")
-            ]),
-            _vm._v(" "),
-            _c(
-              "p",
-              {
-                staticClass: "title has-text-grey",
-                staticStyle: { "border-top": "2px solid black" }
-              },
-              [_vm._v(_vm._s(_vm.computerChips) + " chips")]
-            )
-          ])
-        ])
-      ]),
+      _vm._m(0),
       _vm._v(" "),
       _c("nav", { staticClass: "level" }, [
         _c(
@@ -1940,7 +1990,7 @@ var render = function() {
         )
       ]),
       _vm._v(" "),
-      _vm._m(0),
+      _vm._m(1),
       _vm._v(" "),
       _c("nav", { staticClass: "level" }, [
         _c(
@@ -2001,6 +2051,18 @@ var render = function() {
       _vm._v(" "),
       _c("nav", { staticClass: "level" }, [
         _c("div", { staticClass: "level-item has-text-centered" }, [
+          _c("div", [
+            _c("p", { staticClass: "title", style: _vm.resultMsgStyle }, [
+              _vm._v(
+                _vm._s(_vm.resultMessage ? _vm.resultMessage : "placeholder")
+              )
+            ])
+          ])
+        ])
+      ]),
+      _vm._v(" "),
+      _c("nav", { staticClass: "level" }, [
+        _c("div", { staticClass: "level-item has-text-centered" }, [
           _c("div", { staticStyle: { height: "60px" } }),
           _vm._v(" "),
           _c(
@@ -2016,8 +2078,8 @@ var render = function() {
                 {
                   name: "show",
                   rawName: "v-show",
-                  value: !_vm.bet || _vm.bet === 25,
-                  expression: "!bet || bet === 25"
+                  value: (_vm.playerChips >= 25 && !_vm.bet) || _vm.bet === 25,
+                  expression: "playerChips >= 25 && !bet || bet === 25"
                 }
               ],
               staticClass: "button is-rounded is-primary is-small",
@@ -2039,8 +2101,8 @@ var render = function() {
                 {
                   name: "show",
                   rawName: "v-show",
-                  value: !_vm.bet || _vm.bet === 50,
-                  expression: "!bet || bet === 50"
+                  value: (_vm.playerChips >= 50 && !_vm.bet) || _vm.bet === 50,
+                  expression: "playerChips >= 50 && !bet || bet === 50"
                 }
               ],
               staticClass: "button is-rounded is-link",
@@ -2062,8 +2124,9 @@ var render = function() {
                 {
                   name: "show",
                   rawName: "v-show",
-                  value: !_vm.bet || _vm.bet === 100,
-                  expression: "!bet || bet === 100"
+                  value:
+                    (_vm.playerChips >= 100 && !_vm.bet) || _vm.bet === 100,
+                  expression: "playerChips >= 100 && !bet || bet === 100"
                 }
               ],
               staticClass: "button is-rounded is-success is-normal",
@@ -2085,8 +2148,9 @@ var render = function() {
                 {
                   name: "show",
                   rawName: "v-show",
-                  value: !_vm.bet || _vm.bet === 250,
-                  expression: "!bet || bet === 250"
+                  value:
+                    (_vm.playerChips >= 250 && !_vm.bet) || _vm.bet === 250,
+                  expression: "playerChips >= 250 && !bet || bet === 250"
                 }
               ],
               staticClass: "button is-rounded is-warning is-medium",
@@ -2108,8 +2172,9 @@ var render = function() {
                 {
                   name: "show",
                   rawName: "v-show",
-                  value: !_vm.bet || _vm.bet === 500,
-                  expression: "!bet || bet === 500"
+                  value:
+                    (_vm.playerChips >= 500 && !_vm.bet) || _vm.bet === 500,
+                  expression: "playerChips >= 500 && !bet || bet === 500"
                 }
               ],
               staticClass: "button is-rounded is-danger is-large",
@@ -2186,6 +2251,20 @@ var render = function() {
   ])
 }
 var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("nav", { staticClass: "level" }, [
+      _c("div", { staticClass: "level-item has-text-centered" }, [
+        _c("div", [
+          _c("p", { staticClass: "title has-text-weight-bold" }, [
+            _vm._v("Computer")
+          ])
+        ])
+      ])
+    ])
+  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -14606,8 +14685,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

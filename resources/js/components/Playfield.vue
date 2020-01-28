@@ -18,10 +18,10 @@
         <div class="level-item has-text-centered">
           <div>
             <p class="title has-text-weight-bold">Computer</p>
-            <p
+            <!-- <p
               class="title has-text-grey"
               style="border-top: 2px solid black"
-            >{{ computerChips }} chips</p>
+            >{{ computerChips }} chips</p> -->
           </div>
         </div>
       </nav>
@@ -82,39 +82,47 @@
 
       <nav class="level">
         <div class="level-item has-text-centered">
+          <div>
+            <p class="title" :style="resultMsgStyle">{{ resultMessage ? resultMessage : 'placeholder' }}</p>
+          </div>
+        </div>
+      </nav>
+
+      <nav class="level">
+        <div class="level-item has-text-centered">
           <div style="height: 60px;"></div>
           <p class="heading" style="margin-right: 20px;">{{ betMsg }}</p>
           <button
             @click="placeBet(25)"
-            v-show="!bet || bet === 25"
+            v-show="playerChips >= 25 && !bet || bet === 25"
             :style="[baseStyle, betButtonStyling()]"
             :disabled="betButtonDisabled"
             class="button is-rounded is-primary is-small"
           >25</button>
           <button
             @click="placeBet(50)"
-            v-show="!bet || bet === 50"
+            v-show="playerChips >= 50 && !bet || bet === 50"
             :style="[baseStyle, betButtonStyling()]"
             :disabled="betButtonDisabled"
             class="button is-rounded is-link"
           >50</button>
           <button
             @click="placeBet(100)"
-            v-show="!bet || bet === 100"
+            v-show="playerChips >= 100 && !bet || bet === 100"
             :style="[baseStyle, betButtonStyling()]"
             :disabled="betButtonDisabled"
             class="button is-rounded is-success is-normal"
           >100</button>
           <button
             @click="placeBet(250)"
-            v-show="!bet || bet === 250"
+            v-show="playerChips >= 250 && !bet || bet === 250"
             :style="[baseStyle, betButtonStyling()]"
             :disabled="betButtonDisabled"
             class="button is-rounded is-warning is-medium"
           >250</button>
           <button
             @click="placeBet(500)"
-            v-show="!bet || bet === 500"
+            v-show="playerChips >= 500 && !bet || bet === 500"
             :style="[betButtonStyling()]"
             :disabled="betButtonDisabled"
             class="button is-rounded is-danger is-large"
@@ -144,17 +152,22 @@ export default {
   },
   data() {
     return {
+      resultMessage: "",
       betMsg: "Place your Bid: ",
       chooseNext: false,
       chooseMsg: "Choose: ",
       betButtonDisabled: false,
       baseStyle: {
         marginRight: "10px"
-        // height: "40px"
       },
       disabledBetButtonStyle: {
         opacity: "1",
         cursor: "default"
+      },
+      resultMsgStyle: {
+        visibility: 'hidden',
+        border: '1px solid black',
+        color: 'purple'
       },
       bet: 0,
       deck: [],
@@ -174,17 +187,31 @@ export default {
         "queen",
         "king"
       ],
-      playerScore: 0,
+      pcAces: 0,
+      playerAces: 0,
       pcScore: 0,
-      startGame: false,
+      playerScore: 0,
       pccards: [],
       playercards: [],
+      // startGame: false,
       playerName: this.localData[0],
-      computerChips: this.localData[1],
-      playerChips: this.localData[2]
+      playerChips: this.localData[1],
     };
   },
   methods: {
+    resultMsgStyling() {
+      if (this.resultMessage === "BLACKJACK") {
+        this.resultMsgStyle.border = 'red solid 2px';
+        this.resultMsgStyle.color = 'red'
+      }
+      if (this.resultMessage) {
+        // this.resultMsgStyle.visibility = 'visible' : this.resultMsgStyle.visibility = 'hidden'
+      }
+      
+    },
+    resultVisible() {
+      return { visibility: this.resultMessage ? 'visible' : 'hidden' };
+    },
     betButtonStyling() {
       if (this.bet !== 0) {
         return this.disabledBetButtonStyle;
@@ -195,6 +222,7 @@ export default {
       location.reload();
     },
     startBlackjack() {
+      this.resultMsgAdditionStyle
       this.startGame = true;
     },
     pngcard(card) {
@@ -219,48 +247,66 @@ export default {
         let location1 = Math.floor(Math.random() * this.deck.length);
         let location2 = Math.floor(Math.random() * this.deck.length);
         let tmp = this.deck[location1];
-
         this.deck[location1] = this.deck[location2];
         this.deck[location2] = tmp;
       }
     },
     placeBet(bidvalue) {
+      // this.playerScore = 21;
+      // this.playercards = [1, 1];
+      // this.getResult("player");
+      // return;
       this.betMsg = "Your Bet: ";
       this.bet = bidvalue;
       this.betButtonDisabled = true;
-
+      this.setplayerChips(bidvalue)
       setTimeout(this.draw, 300, "pc");
       setTimeout(this.pushBlank, 600);
       setTimeout(this.draw, 900, "player");
       setTimeout(this.draw, 1200, "player");
-      setTimeout(this.setScore, 1200);
       setTimeout(this.setChoose, 1500);
     },
-    setScore() {
-      for (let i = 0; i < this.pccards.length; i++) {
-        if (this.pccards[i] === "blank") {
-          continue;
-        }
-        if (
-          this.pccards[i].Value === "jack" ||
-          this.pccards[i].Value === "queen" ||
-          this.pccards[i].Value === "king"
-        ) {
-          // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
+    setplayerChips(bid) {
+      let newVal = this.playerChips - bid
+      localStorage.setItem("playerchips", newVal)
+      this.$emit("setLocalChipsData", "")
+    },
+    setScore(val) {
+      if (val === "pc") {
+        let card = this.pccards[this.pccards.length - 1]
+        if (card.Value === "1") {
+          this.pcAces += 1;
+          this.pcScore += 11;
+        } else if (card.Value === "jack" || card.Value === "queen" || card.Value === "king") {
           this.pcScore += 10;
         } else {
-          this.pcScore += parseInt(this.pccards[i].Value);
+            this.pcScore += parseInt(card.Value);
         }
+        this.getResult("pc");
       }
-      for (let j = 0; j < this.playercards.length; j++) {
-        if (
-          this.playercards[j].Value === "jack" ||
-          this.playercards[j].Value === "queen" ||
-          this.playercards[j].Value === "king"
-        ) {
+      if (val === "player") {
+        let card = this.playercards[this.playercards.length - 1]
+        if (card.Value === "1") {
+          this.playerAces += 1;
+          this.playerScore += 11;
+          // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
+        } else if (card.Value === "jack" || card.Value === "queen" || card.Value === "king") {
           this.playerScore += 10;
         } else {
-          this.playerScore += parseInt(this.playercards[j].Value);
+            this.playerScore += parseInt(card.Value);
+        }
+        this.getResult("player");
+      }
+    },
+    getResult(val) {
+      if (val === "player") {
+        if (this.playercards.length === 2) {
+          this.resultMessage = "BLACKJACK";
+          this.resultMsgStyling();
+          setTimeout(function () {
+            this.resultMessage = ""
+            this.resultMsgStyling()
+            }.bind(this), 3000)
         }
       }
     },
@@ -273,18 +319,20 @@ export default {
     draw(val) {
       let cardindex = Math.floor(Math.random() * this.deck.length);
       let drawnCard = this.deck.splice(cardindex, 1);
-      val === "pc"
-        ? this.pccards.push(drawnCard[0])
-        : val === "player"
-        ? this.playercards.push(drawnCard[0])
-        : "";
+      if (val === "pc") {
+        this.pccards.push(drawnCard[0])
+        this.setScore("pc")
+      }
+      if (val === "player") { 
+        this.playercards.push(drawnCard[0])
+        this.setScore("player")
+      }
     }
   },
   watch: {
     localData: function(val) {
       this.playerName = this.localData[0];
-      this.computerChips = this.localData[1];
-      this.playerChips = this.localData[2];
+      this.playerChips = this.localData[1];
     }
   },
   mounted() {

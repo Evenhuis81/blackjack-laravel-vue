@@ -1,7 +1,7 @@
 <template>
   <div>
-    <login v-show="!nickname" @loginguest="onLoginGuest"></login>
-    <playfield v-show="nickname" :localData="[nickname, computerchips, playerchips]"></playfield>
+    <login v-show="!nickname" @setLocalData="setLocalData"></login>
+    <playfield v-show="nickname" @setLocalChipsData="setLocalChips" :localData="[nickname, playerchips]"></playfield>
   </div>
 </template>
 
@@ -13,7 +13,6 @@ export default {
   data: function() {
     return {
       nickname: false,
-      computerchips: false,
       playerchips: false
     };
   },
@@ -22,16 +21,17 @@ export default {
     Playfield
   },
   methods: {
-    onLoginGuest() {
+    setLocalData() {
       this.nickname = localStorage.getItem("nickname");
-      this.computerchips = localStorage.getItem("computerchips");
+      this.playerchips = localStorage.getItem("playerchips");
+    },
+    setLocalChips() {
       this.playerchips = localStorage.getItem("playerchips");
     }
   },
   mounted: function() {
     if (localStorage.getItem("nickname")) {
       this.nickname = localStorage.getItem("nickname");
-      this.computerchips = localStorage.getItem("computerchips");
       this.playerchips = localStorage.getItem("playerchips");
     }
   }

@@ -73,8 +73,7 @@ export default {
         if (localStorage) {
           localStorage.setItem("nickname", this.nickname);
           localStorage.setItem("playerchips", 1000);
-          localStorage.setItem("computerchips", 1000);
-          this.$emit("loginguest", this.nickname);
+          this.$emit("setLocalData", "");
           return;
         } else {
           alert(
