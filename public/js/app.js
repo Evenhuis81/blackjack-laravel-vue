@@ -221,8 +221,7 @@ __webpack_require__.r(__webpack_exports__);
           localStorage.setItem("nickname", this.nickname);
           localStorage.setItem("playerchips", 1000);
           localStorage.setItem("computerchips", 1000);
-          this.$emit("loginguest", this.nickname); //   alert("set");
-
+          this.$emit("loginguest", this.nickname);
           return;
         } else {
           alert("No support. Use a fallback such as browser cookies or store on the server.");
@@ -350,6 +349,38 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -364,7 +395,8 @@ __webpack_require__.r(__webpack_exports__);
       chooseMsg: "Choose: ",
       betButtonDisabled: false,
       baseStyle: {
-        marginRight: '10px'
+        marginRight: "10px" // height: "40px"
+
       },
       disabledBetButtonStyle: {
         opacity: "1",
@@ -374,8 +406,8 @@ __webpack_require__.r(__webpack_exports__);
       deck: [],
       suits: ["spade", "diamond", "club", "heart"],
       values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
-      playerScore: "",
-      pcScore: "",
+      playerScore: 0,
+      pcScore: 0,
       startGame: false,
       pccards: [],
       playercards: [],
@@ -404,7 +436,11 @@ __webpack_require__.r(__webpack_exports__);
 
       return "cards/" + card.Suit + "_" + card.Value + ".png";
     },
-    getDeck: function getDeck() {
+    newDeck: function newDeck() {
+      if (this.deck.length) {
+        this.deck = [];
+      }
+
       for (var i = 0; i < this.suits.length; i++) {
         for (var x = 0; x < this.values.length; x++) {
           var card = {
@@ -428,43 +464,32 @@ __webpack_require__.r(__webpack_exports__);
       this.betMsg = "Your Bet: ";
       this.bet = bidvalue;
       this.betButtonDisabled = true;
-      setTimeout(this.draw, 300, 'pc');
+      setTimeout(this.draw, 300, "pc");
       setTimeout(this.pushBlank, 600);
-      setTimeout(this.draw, 900, 'player');
-      setTimeout(this.draw, 1200, 'player');
+      setTimeout(this.draw, 900, "player");
+      setTimeout(this.draw, 1200, "player");
+      setTimeout(this.setScore, 1200);
       setTimeout(this.setChoose, 1500);
-      setTimeout(this.setScore, 1500);
     },
     setScore: function setScore() {
-      this.pcScore = 0;
-      this.playerScore = 0;
-      console.log('setting score');
-
-      for (var index = 0; index < this.pccards.length; index++) {
-        if (this.pccards[index] === "blank") {
+      for (var i = 0; i < this.pccards.length; i++) {
+        if (this.pccards[i] === "blank") {
           continue;
-        } // if (this.pccards[index].Value === "jack" || this.pccards[index].Value === "queen" || this.pccards[index].Value === "king") {
+        }
 
-
-        if (this.pccards[index].Value in ["jack", "queen", "king"]) {
-          console.log('elsepcjqk');
+        if (this.pccards[i].Value === "jack" || this.pccards[i].Value === "queen" || this.pccards[i].Value === "king") {
+          // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
           this.pcScore += 10;
         } else {
-          console.log('elsepc');
-          this.pcScore += this.pccards[index].Value;
+          this.pcScore += parseInt(this.pccards[i].Value);
         }
       }
 
-      for (var _index = 0; _index < this.playercards.length; _index++) {
-        // if (playercards[index] === "blank") {
-        //   continue;
-        // }
-        if (this.playercards[_index].Value === "jack" || "queen" || "king") {
-          console.log('elseplayerjqk');
-          this.pcScore += 10;
+      for (var j = 0; j < this.playercards.length; j++) {
+        if (this.playercards[j].Value === "jack" || this.playercards[j].Value === "queen" || this.playercards[j].Value === "king") {
+          this.playerScore += 10;
         } else {
-          console.log('elseplayer');
-          this.pcScore += this.playercards[_index].Value;
+          this.playerScore += parseInt(this.playercards[j].Value);
         }
       }
     },
@@ -488,7 +513,7 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   mounted: function mounted() {
-    this.getDeck();
+    this.newDeck();
     this.shuffleDeck();
   }
 });
@@ -507,7 +532,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\r\nbody[data-v-6bdc8b8e] {\r\n  background-color: #fff;\r\n  color: #636b6f;\r\n  font-family: \"Nunito\", sans-serif;\r\n  font-weight: 200;\r\n  height: 100vh;\r\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\r\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\r\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\r\n  -webkit-box-align: center;\r\n          align-items: center;\r\n  display: -webkit-box;\r\n  display: flex;\r\n  -webkit-box-pack: center;\r\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\r\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\r\n  position: absolute;\r\n  right: 10px;\r\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\r\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\r\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\r\n  color: #636b6f;\r\n  padding: 0 25px;\r\n  font-size: 13px;\r\n  font-weight: 600;\r\n  letter-spacing: 0.1rem;\r\n  text-decoration: none;\r\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\r\n  margin-bottom: 30px;\n}\r\n", ""]);
+exports.push([module.i, "\nhtml[data-v-6bdc8b8e],\nbody[data-v-6bdc8b8e] {\n  background-color: #fff;\n  color: #636b6f;\n  font-family: \"Nunito\", sans-serif;\n  font-weight: 200;\n  height: 100vh;\n  margin: 0;\n}\n.play[data-v-6bdc8b8e] {\n  margin-top: 100px;\n}\n.full-height[data-v-6bdc8b8e] {\n  height: 100vh;\n}\n.flex-center[data-v-6bdc8b8e] {\n  -webkit-box-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: flex;\n  -webkit-box-pack: center;\n          justify-content: center;\n}\n.position-ref[data-v-6bdc8b8e] {\n  position: relative;\n}\n.top-right[data-v-6bdc8b8e] {\n  position: absolute;\n  right: 10px;\n  top: 18px;\n}\n.content[data-v-6bdc8b8e] {\n  text-align: center;\n}\n.title[data-v-6bdc8b8e] {\n  font-size: 84px;\n}\n.links > a[data-v-6bdc8b8e] {\n  color: #636b6f;\n  padding: 0 25px;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.1rem;\n  text-decoration: none;\n  text-transform: uppercase;\n}\n.m-b-md[data-v-6bdc8b8e] {\n  margin-bottom: 30px;\n}\n", ""]);
 
 // exports
 
@@ -1887,21 +1912,17 @@ var render = function() {
             _c(
               "div",
               {
-                directives: [
-                  {
-                    name: "show",
-                    rawName: "v-show",
-                    value: _vm.pcScore,
-                    expression: "pcScore"
-                  }
-                ],
                 staticClass:
                   "button is-rounded is-primary is-small has-text-black",
                 staticStyle: {
+                  "font-weight": "bold",
+                  width: "20px",
                   "margin-right": "10px",
                   opacity: "1",
                   cursor: "default"
-                }
+                },
+                style: { visibility: _vm.pcScore ? "visible" : "hidden" },
+                attrs: { disabled: "" }
               },
               [_vm._v(_vm._s(_vm.pcScore))]
             ),
@@ -1931,21 +1952,16 @@ var render = function() {
             _c(
               "div",
               {
-                directives: [
-                  {
-                    name: "show",
-                    rawName: "v-show",
-                    value: _vm.pcScore,
-                    expression: "pcScore"
-                  }
-                ],
                 staticClass:
                   "button is-rounded is-primary is-small has-text-black",
                 staticStyle: {
+                  "font-weight": "bold",
+                  width: "20px",
                   "margin-right": "10px",
                   opacity: "1",
                   cursor: "default"
                 },
+                style: { visibility: _vm.playerScore ? "visible" : "hidden" },
                 attrs: { disabled: "" }
               },
               [_vm._v(_vm._s(_vm.playerScore))]
@@ -1985,6 +2001,8 @@ var render = function() {
       _vm._v(" "),
       _c("nav", { staticClass: "level" }, [
         _c("div", { staticClass: "level-item has-text-centered" }, [
+          _c("div", { staticStyle: { height: "60px" } }),
+          _vm._v(" "),
           _c(
             "p",
             { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
@@ -2134,7 +2152,15 @@ var render = function() {
             _vm._v(" "),
             _c(
               "button",
-              { staticClass: "button is-black", style: [_vm.baseStyle] },
+              {
+                staticClass: "button is-black",
+                style: [_vm.baseStyle],
+                on: {
+                  click: function($event) {
+                    return _vm.draw("player")
+                  }
+                }
+              },
               [_vm._v("Draw")]
             ),
             _vm._v(" "),
@@ -14393,49 +14419,16 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _App_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./App.vue */ "./resources/js/App.vue");
-/**
- * First we will load all of this project's JavaScript dependencies which
- * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
- */
 // require('./bootstrap');
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
 Vue.config.productionTip = false;
-/**
- * The following block of code may be used to automatically register your
- * Vue components. It will recursively scan this directory for the Vue
- * components and automatically register them with their "basename".
- *
- * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
- */
-// const files = require.context('./', true, /\.vue$/i)
-// files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
-// Vue.component('example-component', require('./components/ExampleComponent.vue').default);
-
-
-/**
- * Next, we will create a fresh Vue application instance and attach it to
- * the page. Then, you may begin adding components to this application
- * or customize the JavaScript scaffolding to fit your unique needs.
- */
 
 new Vue({
-  // name: "#numberone",
-  //     render: h => h(App)
-  // }).$mount('#app')
   el: "#root",
   components: {
     App: _App_vue__WEBPACK_IMPORTED_MODULE_0__["default"]
   }
-}); // new Vue({
-//     name: "#numbertwo",
-//     //     render: h => h(App)
-//     // }).$mount('#app')
-//         el: "#app",
-//         components: {
-//             // App,
-//         }
-//     });
+});
 
 /***/ }),
 
@@ -14613,8 +14606,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\laragon\www\blackjack-laravel-vuejs\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\js\app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vue\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

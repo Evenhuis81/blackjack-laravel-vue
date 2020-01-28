@@ -30,9 +30,10 @@
         <div class="level-item has-text-centered">
           <div style="height: 122px;"></div>
           <div
-            v-show="pcScore"
-            style="margin-right: 10px; opacity: 1; cursor: default"
+            disabled
+            style="font-weight: bold; width: 20px; margin-right: 10px; opacity: 1; cursor: default;"
             class="button is-rounded is-primary is-small has-text-black"
+            :style="{ visibility: pcScore ? 'visible' : 'hidden' }"
           >{{ pcScore }}</div>
           <div v-for="(pccard, index) in pccards" :key="index">
             <img :src="pngcard(pccard)" alt="pngimage" style="height: 122px;" />
@@ -55,13 +56,13 @@
       <nav class="level">
         <div class="level-item has-text-centered">
           <div style="height: 122px;"></div>
-            <div
+          <div
             disabled
-            v-show="pcScore"
-            style="margin-right: 10px; opacity: 1; cursor: default"
+            style="font-weight: bold; width: 20px; margin-right: 10px; opacity: 1; cursor: default;"
             class="button is-rounded is-primary is-small has-text-black"
+            :style="{ visibility: playerScore ? 'visible' : 'hidden' }"
           >{{ playerScore }}</div>
-            <div v-for="(playercard, index) in playercards" :key="index">
+          <div v-for="(playercard, index) in playercards" :key="index">
             <img :src="pngcard(playercard)" alt="pngimage" style="height: 122px;" />
           </div>
         </div>
@@ -81,18 +82,49 @@
 
       <nav class="level">
         <div class="level-item has-text-centered">
+          <div style="height: 60px;"></div>
           <p class="heading" style="margin-right: 20px;">{{ betMsg }}</p>
-          <button @click="placeBet(25)" v-show="!bet || bet === 25" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-primary is-small">25</button>
-          <button @click="placeBet(50)" v-show="!bet || bet === 50" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-link">50</button>
-          <button @click="placeBet(100)" v-show="!bet || bet === 100" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-success is-normal">100</button>
-          <button @click="placeBet(250)" v-show="!bet || bet === 250" :style="[baseStyle, betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-warning is-medium">250</button>
-          <button @click="placeBet(500)" v-show="!bet || bet === 500" :style="[betButtonStyling()]" :disabled="betButtonDisabled" class="button is-rounded is-danger is-large">500</button>
+          <button
+            @click="placeBet(25)"
+            v-show="!bet || bet === 25"
+            :style="[baseStyle, betButtonStyling()]"
+            :disabled="betButtonDisabled"
+            class="button is-rounded is-primary is-small"
+          >25</button>
+          <button
+            @click="placeBet(50)"
+            v-show="!bet || bet === 50"
+            :style="[baseStyle, betButtonStyling()]"
+            :disabled="betButtonDisabled"
+            class="button is-rounded is-link"
+          >50</button>
+          <button
+            @click="placeBet(100)"
+            v-show="!bet || bet === 100"
+            :style="[baseStyle, betButtonStyling()]"
+            :disabled="betButtonDisabled"
+            class="button is-rounded is-success is-normal"
+          >100</button>
+          <button
+            @click="placeBet(250)"
+            v-show="!bet || bet === 250"
+            :style="[baseStyle, betButtonStyling()]"
+            :disabled="betButtonDisabled"
+            class="button is-rounded is-warning is-medium"
+          >250</button>
+          <button
+            @click="placeBet(500)"
+            v-show="!bet || bet === 500"
+            :style="[betButtonStyling()]"
+            :disabled="betButtonDisabled"
+            class="button is-rounded is-danger is-large"
+          >500</button>
         </div>
       </nav>
       <nav class="level" v-show="chooseNext">
         <div class="level-item has-text-centered">
           <p class="heading" style="margin-right: 20px;">{{ chooseMsg }}</p>
-          <button :style="[baseStyle]" class="button is-black">Draw</button>
+          <button @click="draw('player')" :style="[baseStyle]" class="button is-black">Draw</button>
           <button :style="[baseStyle]" class="button is-light">Stand</button>
           <button :style="[baseStyle]" class="button is-warning">Split</button>
           <button class="button is-danger">Double</button>
@@ -117,7 +149,8 @@ export default {
       chooseMsg: "Choose: ",
       betButtonDisabled: false,
       baseStyle: {
-        marginRight: '10px',
+        marginRight: "10px"
+        // height: "40px"
       },
       disabledBetButtonStyle: {
         opacity: "1",
@@ -126,9 +159,23 @@ export default {
       bet: 0,
       deck: [],
       suits: ["spade", "diamond", "club", "heart"],
-      values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
-      playerScore: "",
-      pcScore: "",
+      values: [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "jack",
+        "queen",
+        "king"
+      ],
+      playerScore: 0,
+      pcScore: 0,
       startGame: false,
       pccards: [],
       playercards: [],
@@ -140,7 +187,7 @@ export default {
   methods: {
     betButtonStyling() {
       if (this.bet !== 0) {
-        return this.disabledBetButtonStyle
+        return this.disabledBetButtonStyle;
       }
     },
     reset() {
@@ -156,21 +203,21 @@ export default {
       }
       return "cards/" + card.Suit + "_" + card.Value + ".png";
     },
-    getDeck() {
-      for(let i = 0; i < this.suits.length; i++)
-      {
-        for(let x = 0; x < this.values.length; x++)
-        {
-          let card = {Value: this.values[x], Suit: this.suits[i]};
+    newDeck() {
+      if (this.deck.length) {
+        this.deck = [];
+      }
+      for (let i = 0; i < this.suits.length; i++) {
+        for (let x = 0; x < this.values.length; x++) {
+          let card = { Value: this.values[x], Suit: this.suits[i] };
           this.deck.push(card);
         }
       }
     },
     shuffleDeck() {
-      for (let i = 0; i < 1000; i++)
-      {
-        let location1 = Math.floor((Math.random() * this.deck.length));
-        let location2 = Math.floor((Math.random() * this.deck.length));
+      for (let i = 0; i < 1000; i++) {
+        let location1 = Math.floor(Math.random() * this.deck.length);
+        let location2 = Math.floor(Math.random() * this.deck.length);
         let tmp = this.deck[location1];
 
         this.deck[location1] = this.deck[location2];
@@ -178,57 +225,59 @@ export default {
       }
     },
     placeBet(bidvalue) {
-      this.betMsg = "Your Bet: "
-      this.bet = bidvalue
-      this.betButtonDisabled = true
+      this.betMsg = "Your Bet: ";
+      this.bet = bidvalue;
+      this.betButtonDisabled = true;
 
-      setTimeout(this.draw, 300, 'pc');
+      setTimeout(this.draw, 300, "pc");
       setTimeout(this.pushBlank, 600);
-      setTimeout(this.draw, 900, 'player');
-      setTimeout(this.draw, 1200, 'player');
+      setTimeout(this.draw, 900, "player");
+      setTimeout(this.draw, 1200, "player");
+      setTimeout(this.setScore, 1200);
       setTimeout(this.setChoose, 1500);
-      setTimeout(this.setScore, 1500);
     },
     setScore() {
-      this.pcScore = 0
-      this.playerScore = 0
-      console.log('setting score')
-      for (let index = 0; index < this.pccards.length; index++) {
-        if (this.pccards[index] === "blank") {
+      for (let i = 0; i < this.pccards.length; i++) {
+        if (this.pccards[i] === "blank") {
           continue;
         }
-        // if (this.pccards[index].Value === "jack" || this.pccards[index].Value === "queen" || this.pccards[index].Value === "king") {
-        if (this.pccards[index].Value in ["jack", "queen", "king"]) {
-          console.log( 'elsepcjqk')
-          this.pcScore += 10
+        if (
+          this.pccards[i].Value === "jack" ||
+          this.pccards[i].Value === "queen" ||
+          this.pccards[i].Value === "king"
+        ) {
+          // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
+          this.pcScore += 10;
         } else {
-          console.log( 'elsepc')
-          this.pcScore += this.pccards[index].Value
-          }
+          this.pcScore += parseInt(this.pccards[i].Value);
         }
-      for (let index = 0; index < this.playercards.length; index++) {
-        // if (playercards[index] === "blank") {
-        //   continue;
-        // }
-        if (this.playercards[index].Value === "jack" || "queen" || "king") {
-          console.log( 'elseplayerjqk')
-          this.pcScore += 10
+      }
+      for (let j = 0; j < this.playercards.length; j++) {
+        if (
+          this.playercards[j].Value === "jack" ||
+          this.playercards[j].Value === "queen" ||
+          this.playercards[j].Value === "king"
+        ) {
+          this.playerScore += 10;
         } else {
-          console.log( 'elseplayer')
-          this.pcScore += this.playercards[index].Value
-          }          
+          this.playerScore += parseInt(this.playercards[j].Value);
         }
-      },
+      }
+    },
     setChoose() {
-      this.chooseNext = true
+      this.chooseNext = true;
     },
     pushBlank() {
-      this.pccards.push("blank")
+      this.pccards.push("blank");
     },
     draw(val) {
       let cardindex = Math.floor(Math.random() * this.deck.length);
       let drawnCard = this.deck.splice(cardindex, 1);
-      val === "pc" ? this.pccards.push(drawnCard[0]) : val === "player" ? this.playercards.push(drawnCard[0]) : "";
+      val === "pc"
+        ? this.pccards.push(drawnCard[0])
+        : val === "player"
+        ? this.playercards.push(drawnCard[0])
+        : "";
     }
   },
   watch: {
@@ -239,8 +288,8 @@ export default {
     }
   },
   mounted() {
-    this.getDeck();
+    this.newDeck();
     this.shuffleDeck();
   }
-}
+};
 </script>

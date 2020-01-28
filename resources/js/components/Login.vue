@@ -75,7 +75,6 @@ export default {
           localStorage.setItem("playerchips", 1000);
           localStorage.setItem("computerchips", 1000);
           this.$emit("loginguest", this.nickname);
-          //   alert("set");
           return;
         } else {
           alert(
