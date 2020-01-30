@@ -1,7 +1,7 @@
 <template>
   <div>
-    <login v-show="!nickname" @setLocalData="setLocalData"></login>
-    <playfield v-show="nickname" @setLocalChipsData="setLocalChips" :localData="[nickname, playerchips]"></playfield>
+    <login v-show="!userName" @setLocalData="setLocalData"></login>
+    <playfield v-show="userName" @setLocalChipsData="setLocalChips" :localData="[userName, userChips]"></playfield>
   </div>
 </template>
 
@@ -12,8 +12,8 @@ import Playfield from "./components/Playfield.vue";
 export default {
   data: function() {
     return {
-      nickname: false,
-      playerchips: false
+      userName: false,
+      userChips: false
     };
   },
   components: {
@@ -22,17 +22,17 @@ export default {
   },
   methods: {
     setLocalData() {
-      this.nickname = localStorage.getItem("nickname");
-      this.playerchips = localStorage.getItem("playerchips");
+      this.userName = localStorage.getItem("username");
+      this.userChips = localStorage.getItem("userchips");
     },
     setLocalChips() {
-      this.playerchips = localStorage.getItem("playerchips");
+      this.userChips = localStorage.getItem("userchips");
     }
   },
   mounted: function() {
-    if (localStorage.getItem("nickname")) {
-      this.nickname = localStorage.getItem("nickname");
-      this.playerchips = localStorage.getItem("playerchips");
+    if (localStorage.getItem("username")) {
+      this.userName = localStorage.getItem("username");
+      this.userChips = localStorage.getItem("userchips");
     }
   }
 };

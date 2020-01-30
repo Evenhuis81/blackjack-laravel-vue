@@ -3,9 +3,9 @@
     <div class="title m-b-md">Blackjack</div>
 
     <div class="links">
-      <a href="https://laravel.com/docs">What</a>
-      <a href="https://laracasts.com">Why</a>
-      <a href="https://laravel-news.com">How</a>
+      <a href="https://laravel.com/docs">What?</a>
+      <a href="https://laracasts.com">Why?</a>
+      <a href="https://laravel-news.com">How?</a>
       <a href="https://blog.laravel.com">As a guest</a>
       <a href="https://nova.laravel.com">As registered</a>
       <a href="https://forge.laravel.com">Github</a>
@@ -18,7 +18,7 @@
       <div class="modal-background"></div>
       <div class="modal-card">
         <header class="modal-card-head">
-          <p class="modal-card-title">Enter Nickname</p>
+          <p class="modal-card-title">Enter Username</p>
           <button @click="deactivateModal" class="delete" aria-label="close"></button>
         </header>
         <form @submit="checkForm">
@@ -26,11 +26,11 @@
             <div class="control has-text-centered">
               <input
                 class="has-text-centered"
-                id="nickname"
+                id="username"
                 type="text"
-                v-model="nickname"
-                name="nickname"
-                placeholder="Enter Nickname"
+                v-model="userName"
+                name="username"
+                placeholder="Enter Username"
               />
               <!-- <input type="hidden" name="_token" :value="csrf" /> -->
             </div>
@@ -55,7 +55,7 @@ export default {
       //     .querySelector('meta[name="csrf-token"]')
       //     .getAttribute("content"),
       errors: [],
-      nickname: null,
+      userName: null,
       modalIsActive: false
     };
   },
@@ -69,10 +69,10 @@ export default {
     checkForm: function(e) {
       e.preventDefault();
       this.errors = [];
-      if (this.nickname.length > 2) {
+      if (this.userName.length > 2) {
         if (localStorage) {
-          localStorage.setItem("nickname", this.nickname);
-          localStorage.setItem("playerchips", 1000);
+          localStorage.setItem("username", this.userName);
+          localStorage.setItem("userchips", 1000);
           this.$emit("setLocalData", "");
           return;
         } else {
@@ -82,7 +82,7 @@ export default {
           return;
         }
       }
-      this.errors.push("Nickname has to be at least 3 characters.");
+      this.errors.push("Username has to be at least 3 characters.");
     }
   }
 };

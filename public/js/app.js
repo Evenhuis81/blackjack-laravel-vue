@@ -109,8 +109,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      nickname: false,
-      playerchips: false
+      userName: false,
+      userChips: false
     };
   },
   components: {
@@ -119,17 +119,17 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     setLocalData: function setLocalData() {
-      this.nickname = localStorage.getItem("nickname");
-      this.playerchips = localStorage.getItem("playerchips");
+      this.userName = localStorage.getItem("username");
+      this.userChips = localStorage.getItem("userchips");
     },
     setLocalChips: function setLocalChips() {
-      this.playerchips = localStorage.getItem("playerchips");
+      this.userChips = localStorage.getItem("userchips");
     }
   },
   mounted: function mounted() {
-    if (localStorage.getItem("nickname")) {
-      this.nickname = localStorage.getItem("nickname");
-      this.playerchips = localStorage.getItem("playerchips");
+    if (localStorage.getItem("username")) {
+      this.userName = localStorage.getItem("username");
+      this.userChips = localStorage.getItem("userchips");
     }
   }
 });
@@ -201,7 +201,7 @@ __webpack_require__.r(__webpack_exports__);
       //     .querySelector('meta[name="csrf-token"]')
       //     .getAttribute("content"),
       errors: [],
-      nickname: null,
+      userName: null,
       modalIsActive: false
     };
   },
@@ -216,10 +216,10 @@ __webpack_require__.r(__webpack_exports__);
       e.preventDefault();
       this.errors = [];
 
-      if (this.nickname.length > 2) {
+      if (this.userName.length > 2) {
         if (localStorage) {
-          localStorage.setItem("nickname", this.nickname);
-          localStorage.setItem("playerchips", 1000);
+          localStorage.setItem("username", this.userName);
+          localStorage.setItem("userchips", 1000);
           this.$emit("setLocalData", "");
           return;
         } else {
@@ -228,7 +228,7 @@ __webpack_require__.r(__webpack_exports__);
         }
       }
 
-      this.errors.push("Nickname has to be at least 3 characters.");
+      this.errors.push("Username has to be at least 3 characters.");
     }
   }
 });
@@ -381,13 +381,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -397,12 +390,12 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
-      resultMessage: "",
+      resultMsg: "",
       betMsg: "Place your Bid: ",
       chooseNext: false,
       chooseMsg: "Choose: ",
       betButtonDisabled: false,
-      baseStyle: {
+      betButtonStyle: {
         marginRight: "10px"
       },
       disabledBetButtonStyle: {
@@ -414,38 +407,31 @@ __webpack_require__.r(__webpack_exports__);
         border: '1px solid black',
         color: 'purple'
       },
-      bet: 0,
       deck: [],
       suits: ["spade", "diamond", "club", "heart"],
       values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"],
-      pcAces: 0,
-      playerAces: 0,
-      pcScore: 0,
-      playerScore: 0,
-      pccards: [],
-      playercards: [],
-      // startGame: false,
-      playerName: this.localData[0],
-      playerChips: this.localData[1]
+      pc: {
+        stand: false,
+        aces: 0,
+        score: 0,
+        cards: []
+      },
+      user: {
+        stand: false,
+        bet: 0,
+        aces: 0,
+        score: 0,
+        cards: [],
+        name: this.localData[0],
+        chips: this.localData[0]
+      },
+      activePlayer: undefined // startGame: false,
+
     };
   },
   methods: {
-    resultMsgStyling: function resultMsgStyling() {
-      if (this.resultMessage === "BLACKJACK") {
-        this.resultMsgStyle.border = 'red solid 2px';
-        this.resultMsgStyle.color = 'red';
-      }
-
-      if (this.resultMessage) {// this.resultMsgStyle.visibility = 'visible' : this.resultMsgStyle.visibility = 'hidden'
-      }
-    },
-    resultVisible: function resultVisible() {
-      return {
-        visibility: this.resultMessage ? 'visible' : 'hidden'
-      };
-    },
     betButtonStyling: function betButtonStyling() {
-      if (this.bet !== 0) {
+      if (this.user.bet !== 0) {
         return this.disabledBetButtonStyle;
       }
     },
@@ -453,11 +439,10 @@ __webpack_require__.r(__webpack_exports__);
       localStorage.clear();
       location.reload();
     },
-    startBlackjack: function startBlackjack() {
-      this.resultMsgAdditionStyle;
-      this.startGame = true;
+    startBlackjack: function startBlackjack() {// this.resultMsgAdditionStyle
+      // this.startGame = true;
     },
-    pngcard: function pngcard(card) {
+    pngCard: function pngCard(card) {
       if (card === "blank") {
         return "cards/back.png";
       }
@@ -488,94 +473,112 @@ __webpack_require__.r(__webpack_exports__);
         this.deck[location2] = tmp;
       }
     },
-    placeBet: function placeBet(bidvalue) {
-      // this.playerScore = 21;
-      // this.playercards = [1, 1];
-      // this.getResult("player");
+    placeBet: function placeBet(bid) {
+      var _this = this;
+
+      this.activePlayer = this.pc; // this.userScore = 21;
+      // this.userCards = [1, 1];
+      // this.getResult("user");
       // return;
+
       this.betMsg = "Your Bet: ";
-      this.bet = bidvalue;
+      this.user.bet = bid;
       this.betButtonDisabled = true;
-      this.setplayerChips(bidvalue);
-      setTimeout(this.draw, 300, "pc");
-      setTimeout(this.pushBlank, 600);
-      setTimeout(this.draw, 900, "player");
-      setTimeout(this.draw, 1200, "player");
-      setTimeout(this.setChoose, 1500);
+      this.setUserChips(bid);
+      setTimeout(function () {
+        _this.draw();
+      }, 300);
+      setTimeout(function () {
+        _this.pc.cards.push("blank");
+      }, 600);
+      setTimeout(function () {
+        _this.activePlayer = _this.user;
+
+        _this.draw();
+      }, 900);
+      setTimeout(function () {
+        _this.draw();
+      }, 1200);
+      setTimeout(function () {
+        _this.chooseNext = true;
+      }, 1500);
     },
-    setplayerChips: function setplayerChips(bid) {
-      var newVal = this.playerChips - bid;
-      localStorage.setItem("playerchips", newVal);
+    setUserChips: function setUserChips(bid) {
+      var newVal = this.user.chips - bid;
+      localStorage.setItem("userchips", newVal);
       this.$emit("setLocalChipsData", "");
     },
-    setScore: function setScore(val) {
-      if (val === "pc") {
-        var card = this.pccards[this.pccards.length - 1];
-
-        if (card.Value === "1") {
-          this.pcAces += 1;
-          this.pcScore += 11;
-        } else if (card.Value === "jack" || card.Value === "queen" || card.Value === "king") {
-          this.pcScore += 10;
-        } else {
-          this.pcScore += parseInt(card.Value);
-        }
-
-        this.getResult("pc");
-      }
-
-      if (val === "player") {
-        var _card = this.playercards[this.playercards.length - 1];
-
-        if (_card.Value === "1") {
-          this.playerAces += 1;
-          this.playerScore += 11; // if (this.pccards[i].Value in ["jack", "queen", "king"]) {
-        } else if (_card.Value === "jack" || _card.Value === "queen" || _card.Value === "king") {
-          this.playerScore += 10;
-        } else {
-          this.playerScore += parseInt(_card.Value);
-        }
-
-        this.getResult("player");
-      }
-    },
-    getResult: function getResult(val) {
-      if (val === "player") {
-        if (this.playercards.length === 2) {
-          this.resultMessage = "BLACKJACK";
-          this.resultMsgStyling();
-          setTimeout(function () {
-            this.resultMessage = "";
-            this.resultMsgStyling();
-          }.bind(this), 3000);
-        }
-      }
-    },
-    setChoose: function setChoose() {
-      this.chooseNext = true;
-    },
-    pushBlank: function pushBlank() {
-      this.pccards.push("blank");
-    },
-    draw: function draw(val) {
+    draw: function draw() {
       var cardindex = Math.floor(Math.random() * this.deck.length);
       var drawnCard = this.deck.splice(cardindex, 1);
+      this.activePlayer.cards.push(drawnCard[0]);
+      this.setScore();
+    },
+    setScore: function setScore() {
+      var card = this.activePlayer.cards[this.activePlayer.cards.length - 1];
 
-      if (val === "pc") {
-        this.pccards.push(drawnCard[0]);
-        this.setScore("pc");
+      if (card.Value === "1") {
+        this.activePlayer.aces += 1;
+        this.activePlayer.score += 11;
+      } else if (card.Value === "jack" || card.Value === "queen" || card.Value === "king") {
+        this.activePlayer.score += 10;
+      } else {
+        this.activePlayer.score += parseInt(card.Value);
       }
 
-      if (val === "player") {
-        this.playercards.push(drawnCard[0]);
-        this.setScore("player");
+      while (this.activePlayer.score > 21 && this.activePlayer.aces !== 0) {
+        this.activePlayer.aces--;
+        this.activePlayer.score -= 10;
       }
+
+      this.getResult();
+    },
+    getResult: function getResult() {
+      if (this.activePlayer.cards.length === 2 && this.activePlayer.score === 21) {
+        if (this.activePlayer.hasOwnProperty('bet')) {
+          alert("You got Blackjack!!");
+          return;
+        } else {
+          alert("The Computer Wins");
+        }
+      }
+
+      if (this.activePlayer.score > 21 && this.activePlayer.hasOwnProperty('bet')) {
+        alert("Busted!");
+      } else if (this.activePlayer.score > 21) {
+        alert("Victory!");
+      }
+
+      if (this.user.stand && this.pc.stand) {
+        if (this.user.score === this.pc.score) {
+          alert("Push");
+        } else if (this.user.score > this.pc.score) {
+          alert("Victory");
+        } else {
+          alert("The Computer Wins");
+        }
+      }
+
+      if (this.pc.score > 16) {
+        this.pc.stand = true;
+      }
+    },
+    playerStand: function playerStand() {
+      this.user.stand = true;
+      this.activePlayer = this.pc;
+      this.pc.cards.pop();
+
+      while (!this.pc.stand) {
+        this.draw();
+      }
+
+      this.getResult();
     }
   },
   watch: {
-    localData: function localData(val) {
-      this.playerName = this.localData[0];
-      this.playerChips = this.localData[1];
+    localData: function localData(newVal) {
+      this.user.name = this.localData[0];
+      this.user.chips = this.localData[1];
     }
   },
   mounted: function mounted() {
@@ -1722,8 +1725,8 @@ var render = function() {
           {
             name: "show",
             rawName: "v-show",
-            value: !_vm.nickname,
-            expression: "!nickname"
+            value: !_vm.userName,
+            expression: "!userName"
           }
         ],
         on: { setLocalData: _vm.setLocalData }
@@ -1734,11 +1737,11 @@ var render = function() {
           {
             name: "show",
             rawName: "v-show",
-            value: _vm.nickname,
-            expression: "nickname"
+            value: _vm.userName,
+            expression: "userName"
           }
         ],
-        attrs: { localData: [_vm.nickname, _vm.playerchips] },
+        attrs: { localData: [_vm.userName, _vm.userChips] },
         on: { setLocalChipsData: _vm.setLocalChips }
       })
     ],
@@ -1792,7 +1795,7 @@ var render = function() {
         _c("div", { staticClass: "modal-card" }, [
           _c("header", { staticClass: "modal-card-head" }, [
             _c("p", { staticClass: "modal-card-title" }, [
-              _vm._v("Enter Nickname")
+              _vm._v("Enter Username")
             ]),
             _vm._v(" "),
             _c("button", {
@@ -1810,24 +1813,24 @@ var render = function() {
                     {
                       name: "model",
                       rawName: "v-model",
-                      value: _vm.nickname,
-                      expression: "nickname"
+                      value: _vm.userName,
+                      expression: "userName"
                     }
                   ],
                   staticClass: "has-text-centered",
                   attrs: {
-                    id: "nickname",
+                    id: "username",
                     type: "text",
-                    name: "nickname",
-                    placeholder: "Enter Nickname"
+                    name: "username",
+                    placeholder: "Enter Username"
                   },
-                  domProps: { value: _vm.nickname },
+                  domProps: { value: _vm.userName },
                   on: {
                     input: function($event) {
                       if ($event.target.composing) {
                         return
                       }
-                      _vm.nickname = $event.target.value
+                      _vm.userName = $event.target.value
                     }
                   }
                 })
@@ -1856,12 +1859,14 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "links" }, [
       _c("a", { attrs: { href: "https://laravel.com/docs" } }, [
-        _vm._v("What")
+        _vm._v("What?")
       ]),
       _vm._v(" "),
-      _c("a", { attrs: { href: "https://laracasts.com" } }, [_vm._v("Why")]),
+      _c("a", { attrs: { href: "https://laracasts.com" } }, [_vm._v("Why?")]),
       _vm._v(" "),
-      _c("a", { attrs: { href: "https://laravel-news.com" } }, [_vm._v("How")]),
+      _c("a", { attrs: { href: "https://laravel-news.com" } }, [
+        _vm._v("How?")
+      ]),
       _vm._v(" "),
       _c("a", { attrs: { href: "https://blog.laravel.com" } }, [
         _vm._v("As a guest")
@@ -1921,8 +1926,8 @@ var render = function() {
           {
             name: "show",
             rawName: "v-show",
-            value: !_vm.playerName,
-            expression: "!playerName"
+            value: !_vm.user.name,
+            expression: "!user.name"
           }
         ],
         staticClass: "hero"
@@ -1940,7 +1945,7 @@ var render = function() {
             ),
             _vm._v(" "),
             _c("h1", { staticClass: "title" }, [
-              _vm._v("Welcome to Blackjack, " + _vm._s(_vm.playerName) + " ...")
+              _vm._v("Welcome to Blackjack, " + _vm._s(_vm.user.name) + " ...")
             ]),
             _vm._v(" "),
             _c("h2", { staticClass: "subtitle" }, [_vm._v("Have fun!")])
@@ -1949,305 +1954,311 @@ var render = function() {
       ]
     ),
     _vm._v(" "),
-    _c("div", [
-      _vm._m(0),
-      _vm._v(" "),
-      _c("nav", { staticClass: "level" }, [
-        _c(
-          "div",
-          { staticClass: "level-item has-text-centered" },
-          [
-            _c("div", { staticStyle: { height: "122px" } }),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass:
-                  "button is-rounded is-primary is-small has-text-black",
-                staticStyle: {
-                  "font-weight": "bold",
-                  width: "20px",
-                  "margin-right": "10px",
-                  opacity: "1",
-                  cursor: "default"
-                },
-                style: { visibility: _vm.pcScore ? "visible" : "hidden" },
-                attrs: { disabled: "" }
+    _vm._m(0),
+    _vm._v(" "),
+    _c("nav", { staticClass: "level" }, [
+      _c(
+        "div",
+        { staticClass: "level-item has-text-centered" },
+        [
+          _c("div", { staticStyle: { height: "122px" } }),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              staticClass:
+                "button is-rounded is-primary is-small has-text-black",
+              staticStyle: {
+                "font-weight": "bold",
+                width: "20px",
+                "margin-right": "10px",
+                opacity: "1",
+                cursor: "default"
               },
-              [_vm._v(_vm._s(_vm.pcScore))]
-            ),
-            _vm._v(" "),
-            _vm._l(_vm.pccards, function(pccard, index) {
-              return _c("div", { key: index }, [
-                _c("img", {
-                  staticStyle: { height: "122px" },
-                  attrs: { src: _vm.pngcard(pccard), alt: "pngimage" }
-                })
-              ])
-            })
-          ],
-          2
-        )
-      ]),
-      _vm._v(" "),
-      _vm._m(1),
-      _vm._v(" "),
-      _c("nav", { staticClass: "level" }, [
-        _c(
-          "div",
-          { staticClass: "level-item has-text-centered" },
-          [
-            _c("div", { staticStyle: { height: "122px" } }),
-            _vm._v(" "),
-            _c(
-              "div",
-              {
-                staticClass:
-                  "button is-rounded is-primary is-small has-text-black",
-                staticStyle: {
-                  "font-weight": "bold",
-                  width: "20px",
-                  "margin-right": "10px",
-                  opacity: "1",
-                  cursor: "default"
-                },
-                style: { visibility: _vm.playerScore ? "visible" : "hidden" },
-                attrs: { disabled: "" }
-              },
-              [_vm._v(_vm._s(_vm.playerScore))]
-            ),
-            _vm._v(" "),
-            _vm._l(_vm.playercards, function(playercard, index) {
-              return _c("div", { key: index }, [
-                _c("img", {
-                  staticStyle: { height: "122px" },
-                  attrs: { src: _vm.pngcard(playercard), alt: "pngimage" }
-                })
-              ])
-            })
-          ],
-          2
-        )
-      ]),
-      _vm._v(" "),
-      _c("nav", { staticClass: "level" }, [
-        _c("div", { staticClass: "level-item has-text-centered" }, [
-          _c("div", [
-            _c("p", { staticClass: "title has-text-weight-bold" }, [
-              _vm._v("You")
-            ]),
-            _vm._v(" "),
-            _c(
-              "p",
-              {
-                staticClass: "title has-text-grey",
-                staticStyle: { "border-top": "2px solid black" }
-              },
-              [_vm._v(_vm._s(_vm.playerChips) + " chips")]
-            )
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("nav", { staticClass: "level" }, [
-        _c("div", { staticClass: "level-item has-text-centered" }, [
-          _c("div", [
-            _c("p", { staticClass: "title", style: _vm.resultMsgStyle }, [
-              _vm._v(
-                _vm._s(_vm.resultMessage ? _vm.resultMessage : "placeholder")
-              )
+              style: { visibility: _vm.pc.score ? "visible" : "hidden" },
+              attrs: { disabled: "" }
+            },
+            [_vm._v(_vm._s(_vm.pc.score))]
+          ),
+          _vm._v(" "),
+          _vm._l(_vm.pc.cards, function(card, index) {
+            return _c("div", { key: index }, [
+              _c("img", {
+                staticStyle: { height: "122px" },
+                attrs: { src: _vm.pngCard(card), alt: "pngimage" }
+              })
             ])
-          ])
-        ])
-      ]),
-      _vm._v(" "),
-      _c("nav", { staticClass: "level" }, [
-        _c("div", { staticClass: "level-item has-text-centered" }, [
-          _c("div", { staticStyle: { height: "60px" } }),
+          })
+        ],
+        2
+      )
+    ]),
+    _vm._v(" "),
+    _vm._m(1),
+    _vm._v(" "),
+    _c("nav", { staticClass: "level" }, [
+      _c(
+        "div",
+        { staticClass: "level-item has-text-centered" },
+        [
+          _c("div", { staticStyle: { height: "122px" } }),
+          _vm._v(" "),
+          _c(
+            "div",
+            {
+              staticClass:
+                "button is-rounded is-primary is-small has-text-black",
+              staticStyle: {
+                "font-weight": "bold",
+                width: "20px",
+                "margin-right": "10px",
+                opacity: "1",
+                cursor: "default"
+              },
+              style: { visibility: _vm.user.score ? "visible" : "hidden" },
+              attrs: { disabled: "" }
+            },
+            [_vm._v(_vm._s(_vm.user.score))]
+          ),
+          _vm._v(" "),
+          _vm._l(_vm.user.cards, function(card, index) {
+            return _c("div", { key: index }, [
+              _c("img", {
+                staticStyle: { height: "122px" },
+                attrs: { src: _vm.pngCard(card), alt: "pngimage" }
+              })
+            ])
+          })
+        ],
+        2
+      )
+    ]),
+    _vm._v(" "),
+    _c("nav", { staticClass: "level" }, [
+      _c("div", { staticClass: "level-item has-text-centered" }, [
+        _c("div", [
+          _c("p", { staticClass: "title has-text-weight-bold" }, [
+            _vm._v("You")
+          ]),
           _vm._v(" "),
           _c(
             "p",
-            { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
-            [_vm._v(_vm._s(_vm.betMsg))]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
             {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value: (_vm.playerChips >= 25 && !_vm.bet) || _vm.bet === 25,
-                  expression: "playerChips >= 25 && !bet || bet === 25"
-                }
-              ],
-              staticClass: "button is-rounded is-primary is-small",
-              style: [_vm.baseStyle, _vm.betButtonStyling()],
-              attrs: { disabled: _vm.betButtonDisabled },
-              on: {
-                click: function($event) {
-                  return _vm.placeBet(25)
-                }
-              }
+              staticClass: "title has-text-grey",
+              staticStyle: { "border-top": "2px solid black" }
             },
-            [_vm._v("25")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value: (_vm.playerChips >= 50 && !_vm.bet) || _vm.bet === 50,
-                  expression: "playerChips >= 50 && !bet || bet === 50"
-                }
-              ],
-              staticClass: "button is-rounded is-link",
-              style: [_vm.baseStyle, _vm.betButtonStyling()],
-              attrs: { disabled: _vm.betButtonDisabled },
-              on: {
-                click: function($event) {
-                  return _vm.placeBet(50)
-                }
-              }
-            },
-            [_vm._v("50")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value:
-                    (_vm.playerChips >= 100 && !_vm.bet) || _vm.bet === 100,
-                  expression: "playerChips >= 100 && !bet || bet === 100"
-                }
-              ],
-              staticClass: "button is-rounded is-success is-normal",
-              style: [_vm.baseStyle, _vm.betButtonStyling()],
-              attrs: { disabled: _vm.betButtonDisabled },
-              on: {
-                click: function($event) {
-                  return _vm.placeBet(100)
-                }
-              }
-            },
-            [_vm._v("100")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value:
-                    (_vm.playerChips >= 250 && !_vm.bet) || _vm.bet === 250,
-                  expression: "playerChips >= 250 && !bet || bet === 250"
-                }
-              ],
-              staticClass: "button is-rounded is-warning is-medium",
-              style: [_vm.baseStyle, _vm.betButtonStyling()],
-              attrs: { disabled: _vm.betButtonDisabled },
-              on: {
-                click: function($event) {
-                  return _vm.placeBet(250)
-                }
-              }
-            },
-            [_vm._v("250")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              directives: [
-                {
-                  name: "show",
-                  rawName: "v-show",
-                  value:
-                    (_vm.playerChips >= 500 && !_vm.bet) || _vm.bet === 500,
-                  expression: "playerChips >= 500 && !bet || bet === 500"
-                }
-              ],
-              staticClass: "button is-rounded is-danger is-large",
-              style: [_vm.betButtonStyling()],
-              attrs: { disabled: _vm.betButtonDisabled },
-              on: {
-                click: function($event) {
-                  return _vm.placeBet(500)
-                }
-              }
-            },
-            [_vm._v("500")]
+            [_vm._v(_vm._s(_vm.user.chips) + " chips")]
           )
         ])
-      ]),
-      _vm._v(" "),
-      _c(
-        "nav",
-        {
-          directives: [
-            {
-              name: "show",
-              rawName: "v-show",
-              value: _vm.chooseNext,
-              expression: "chooseNext"
-            }
-          ],
-          staticClass: "level"
-        },
-        [
-          _c("div", { staticClass: "level-item has-text-centered" }, [
-            _c(
-              "p",
-              {
-                staticClass: "heading",
-                staticStyle: { "margin-right": "20px" }
-              },
-              [_vm._v(_vm._s(_vm.chooseMsg))]
-            ),
-            _vm._v(" "),
-            _c(
-              "button",
-              {
-                staticClass: "button is-black",
-                style: [_vm.baseStyle],
-                on: {
-                  click: function($event) {
-                    return _vm.draw("player")
-                  }
-                }
-              },
-              [_vm._v("Draw")]
-            ),
-            _vm._v(" "),
-            _c(
-              "button",
-              { staticClass: "button is-light", style: [_vm.baseStyle] },
-              [_vm._v("Stand")]
-            ),
-            _vm._v(" "),
-            _c(
-              "button",
-              { staticClass: "button is-warning", style: [_vm.baseStyle] },
-              [_vm._v("Split")]
-            ),
-            _vm._v(" "),
-            _c("button", { staticClass: "button is-danger" }, [
-              _vm._v("Double")
-            ])
+      ])
+    ]),
+    _vm._v(" "),
+    _c("nav", { staticClass: "level" }, [
+      _c("div", { staticClass: "level-item has-text-centered" }, [
+        _c("div", [
+          _c("p", { staticClass: "title", style: _vm.resultMsgStyle }, [
+            _vm._v(_vm._s(_vm.resultMsg ? _vm.resultMsg : "placeholder"))
           ])
-        ]
-      )
-    ])
+        ])
+      ])
+    ]),
+    _vm._v(" "),
+    _c("nav", { staticClass: "level" }, [
+      _c("div", { staticClass: "level-item has-text-centered" }, [
+        _c("div", { staticStyle: { height: "60px" } }),
+        _vm._v(" "),
+        _c(
+          "p",
+          { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
+          [_vm._v(_vm._s(_vm.betMsg))]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value:
+                  (_vm.user.chips >= 25 && !_vm.user.bet) ||
+                  _vm.user.bet === 25,
+                expression: "user.chips >= 25 && !user.bet || user.bet === 25"
+              }
+            ],
+            staticClass: "button is-rounded is-primary is-small",
+            style: [_vm.betButtonStyle, _vm.betButtonStyling()],
+            attrs: { disabled: _vm.betButtonDisabled },
+            on: {
+              click: function($event) {
+                return _vm.placeBet(25)
+              }
+            }
+          },
+          [_vm._v("25")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value:
+                  (_vm.user.chips >= 50 && !_vm.user.bet) ||
+                  _vm.user.bet === 50,
+                expression: "user.chips >= 50 && !user.bet || user.bet === 50"
+              }
+            ],
+            staticClass: "button is-rounded is-link",
+            style: [_vm.betButtonStyle, _vm.betButtonStyling()],
+            attrs: { disabled: _vm.betButtonDisabled },
+            on: {
+              click: function($event) {
+                return _vm.placeBet(50)
+              }
+            }
+          },
+          [_vm._v("50")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value:
+                  (_vm.user.chips >= 100 && !_vm.user.bet) ||
+                  _vm.user.bet === 100,
+                expression: "user.chips >= 100 && !user.bet || user.bet === 100"
+              }
+            ],
+            staticClass: "button is-rounded is-success is-normal",
+            style: [_vm.betButtonStyle, _vm.betButtonStyling()],
+            attrs: { disabled: _vm.betButtonDisabled },
+            on: {
+              click: function($event) {
+                return _vm.placeBet(100)
+              }
+            }
+          },
+          [_vm._v("100")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value:
+                  (_vm.user.chips >= 250 && !_vm.user.bet) ||
+                  _vm.user.bet === 250,
+                expression: "user.chips >= 250 && !user.bet || user.bet === 250"
+              }
+            ],
+            staticClass: "button is-rounded is-warning is-medium",
+            style: [_vm.betButtonStyle, _vm.betButtonStyling()],
+            attrs: { disabled: _vm.betButtonDisabled },
+            on: {
+              click: function($event) {
+                return _vm.placeBet(250)
+              }
+            }
+          },
+          [_vm._v("250")]
+        ),
+        _vm._v(" "),
+        _c(
+          "button",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value:
+                  (_vm.user.chips >= 500 && !_vm.user.bet) ||
+                  _vm.user.bet === 500,
+                expression: "user.chips >= 500 && !user.bet || user.bet === 500"
+              }
+            ],
+            staticClass: "button is-rounded is-danger is-large",
+            style: [_vm.betButtonStyling()],
+            attrs: { disabled: _vm.betButtonDisabled },
+            on: {
+              click: function($event) {
+                return _vm.placeBet(500)
+              }
+            }
+          },
+          [_vm._v("500")]
+        )
+      ])
+    ]),
+    _vm._v(" "),
+    _c(
+      "nav",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.chooseNext,
+            expression: "chooseNext"
+          }
+        ],
+        staticClass: "level"
+      },
+      [
+        _c("div", { staticClass: "level-item has-text-centered" }, [
+          _c(
+            "p",
+            { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
+            [_vm._v(_vm._s(_vm.chooseMsg))]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              staticClass: "button is-black",
+              style: [_vm.betButtonStyle],
+              on: {
+                click: function($event) {
+                  return _vm.draw()
+                }
+              }
+            },
+            [_vm._v("Draw")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              staticClass: "button is-light",
+              style: [_vm.betButtonStyle],
+              on: {
+                click: function($event) {
+                  return _vm.playerStand()
+                }
+              }
+            },
+            [_vm._v("Stand")]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            { staticClass: "button is-warning", style: [_vm.betButtonStyle] },
+            [_vm._v("Split")]
+          ),
+          _vm._v(" "),
+          _c("button", { staticClass: "button is-danger" }, [_vm._v("Double")])
+        ])
+      ]
+    )
   ])
 }
 var staticRenderFns = [
