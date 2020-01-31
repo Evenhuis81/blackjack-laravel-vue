@@ -376,6 +376,8 @@ __webpack_require__.r(__webpack_exports__);
       chooseMsg: "Choose: ",
       chooseNext: false,
       chooseNextTimeout: null,
+      removePcCardsInterval: null,
+      removeUserCardsInterval: null,
       betButtonDisabled: false,
       betButtonStyle: {
         marginRight: "10px"
@@ -632,6 +634,8 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     nextRound: function nextRound() {
+      var _this4 = this;
+
       this.resultMsgStyle.visibility = "hidden";
       this.resultMsg = ".";
       this.resultMsgStyle.color = "black";
@@ -645,34 +649,29 @@ __webpack_require__.r(__webpack_exports__);
       this.betMsg = "Place your Bid: ";
       this.chooseMsg = "Choose: ";
       this.activePlayer = undefined;
-      this.betButtonDisabled = false; //   for (
-      //     let timeoutIncrease = 150;
-      //     this.user.cards.length > 0;
-      //     timeoutIncrease += 150
-      //   ) {
-      // setTimeout(() => {
-
-      while (this.user.cards.length) {
-        this.user.cards.pop();
-      } // }, timeoutIncrease);
-      //   }
-      //   for (
-      //     let timeoutIncrease = 200;
-      // this.pc.cards.length > 0;
-      // timeoutIncrease += 200
-      //   ) {
-      // setTimeout(() => {
-
-
-      while (this.pc.cards.length) {
+      this.removePcCardsInterval = setInterval(this.removePcCards, 200);
+      setTimeout(function () {
+        _this4.removeUserCardsInterval = setInterval(_this4.removeUserCards, 200);
+      }, 200);
+      setTimeout(function () {
+        _this4.betButtonDisabled = false;
+      }, 1000);
+      this.newDeck();
+      this.shuffleDeck();
+    },
+    removePcCards: function removePcCards() {
+      if (this.pc.cards.length === 0) {
+        clearInterval(this.removePcCardsInterval);
+      } else {
         this.pc.cards.pop();
-      } //
-      //
-      // }, timeoutIncrease);
-      //   }
-      //   this.newDeck();
-      //   this.shuffleDeck();
-
+      }
+    },
+    removeUserCards: function removeUserCards() {
+      if (this.user.cards.length === 0) {
+        clearInterval(this.removeUserCardsInterval);
+      } else {
+        this.user.cards.pop();
+      }
     },
     playerStand: function playerStand() {
       this.chooseNext = false;

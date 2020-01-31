@@ -127,6 +127,8 @@ export default {
       chooseMsg: "Choose: ",
       chooseNext: false,
       chooseNextTimeout: null,
+      removePcCardsInterval: null,
+      removeUserCardsInterval: null,
       betButtonDisabled: false,
       betButtonStyle: {
         marginRight: "10px"
@@ -401,33 +403,29 @@ export default {
       this.betMsg = "Place your Bid: ";
       this.chooseMsg = "Choose: ";
       this.activePlayer = undefined;
-      this.betButtonDisabled = false;
-      //   for (
-      //     let timeoutIncrease = 150;
-      //     this.user.cards.length > 0;
-      //     timeoutIncrease += 150
-      //   ) {
-      // setTimeout(() => {
-      while (this.user.cards.length) {
-        this.user.cards.pop();
-      }
-      // }, timeoutIncrease);
-      //   }
-      //   for (
-      //     let timeoutIncrease = 200;
-      // this.pc.cards.length > 0;
-      // timeoutIncrease += 200
-      //   ) {
-      // setTimeout(() => {
-      while (this.pc.cards.length) {
+      this.removePcCardsInterval = setInterval(this.removePcCards, 200);
+      setTimeout(() => {
+        this.removeUserCardsInterval = setInterval(this.removeUserCards, 200);
+      }, 200);
+      setTimeout(() => {
+        this.betButtonDisabled = false;
+      }, 1000);
+      this.newDeck();
+      this.shuffleDeck();
+    },
+    removePcCards() {
+      if (this.pc.cards.length === 0) {
+        clearInterval(this.removePcCardsInterval);
+      } else {
         this.pc.cards.pop();
       }
-      //
-      //
-      // }, timeoutIncrease);
-      //   }
-      //   this.newDeck();
-      //   this.shuffleDeck();
+    },
+    removeUserCards() {
+      if (this.user.cards.length === 0) {
+        clearInterval(this.removeUserCardsInterval);
+      } else {
+        this.user.cards.pop();
+      }
     },
     playerStand() {
       this.chooseNext = false;
