@@ -1,7 +1,11 @@
 <template>
   <div>
     <login v-show="!userName" @setLocalData="setLocalData"></login>
-    <playfield v-show="userName" @setLocalChipsData="setLocalChips" :localData="[userName, userChips]"></playfield>
+    <playfield
+      v-show="userName"
+      @setLocalChipsData="setLocalChips"
+      :localData="[userName, userChips]"
+    ></playfield>
   </div>
 </template>
 
