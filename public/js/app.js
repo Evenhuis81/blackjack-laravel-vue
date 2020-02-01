@@ -362,6 +362,13 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -371,20 +378,46 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
+      chooseButtons: [{
+        selected: "Draw",
+        show: true,
+        color: "is-info",
+        disabled: false
+      }, {
+        selected: "Stand",
+        show: true,
+        color: "is-success",
+        disabled: false
+      }, {
+        selected: "Split",
+        show: true,
+        color: "is-warning",
+        disabled: false
+      }, {
+        selected: "Double",
+        show: true,
+        color: "is-danger",
+        disabled: false
+      }],
+      showScore: false,
+      showBidButtons: true,
       resultMsg: ".",
       betMsg: "Place your Bid: ",
       chooseMsg: "Choose: ",
+      // showChooseButtons
       chooseNext: false,
       chooseNextTimeout: null,
+      drawPcCardsInterval: null,
       removePcCardsInterval: null,
       removeUserCardsInterval: null,
+      chooseButtonDisabled: false,
       betButtonDisabled: false,
       betButtonStyle: {
-        marginRight: "10px"
+        marginRight: "10px",
+        opacity: "1"
       },
-      disabledBetButtonStyle: {
-        opacity: "1",
-        cursor: "default"
+      chooseButtonStyle: {
+        marginRight: "15px"
       },
       resultMsgStyle: {
         visibility: "hidden",
@@ -393,19 +426,19 @@ __webpack_require__.r(__webpack_exports__);
       bidButtons: [{
         bid: 25,
         size: "is-small",
-        type: "is-primary"
+        color: "is-primary"
       }, {
         bid: 50,
         size: "is-normal",
-        type: "is-success"
+        color: "is-success"
       }, {
         bid: 100,
         size: "is-medium",
-        type: "is-warning"
+        color: "is-warning"
       }, {
         bid: 250,
         size: "is-large",
-        type: "is-danger"
+        color: "is-danger"
       }],
       deck: [],
       suits: ["spade", "diamond", "club", "heart"],
@@ -431,9 +464,37 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   methods: {
+    // can use same parameter as other switches?
+    selectedButton: function selectedButton(chooseResult) {
+      switch (chooseResult) {
+        case "Draw":
+          this.draw();
+          break;
+
+        case "Stand":
+          this.stand();
+          break;
+
+        case "Split":
+          this.split();
+          break;
+
+        case "Double":
+          this["double"]();
+          break;
+
+        default:
+          alert("SOMETHING WENT WRONG IN SELECTEDBUTTON SWITCH");
+      }
+    },
+    split: function split() {//
+    },
+    "double": function double() {//
+    },
     placeBet: function placeBet(bid) {
       var _this = this;
 
+      this.betButtonStyle.cursor = "default";
       this.activePlayer = this.pc;
       this.betMsg = "Your Bet: ";
       this.user.bet = bid;
@@ -450,6 +511,10 @@ __webpack_require__.r(__webpack_exports__);
       setTimeout(function () {
         _this.pc.cards.push("blank");
       }, 900);
+      setTimeout(function () {
+        _this.showScore = true;
+      }, 1350); // choosenexttimeout variable must be set before setTimeout player draw 2nd card in case of blackjack so it can be removed
+
       this.chooseNextTimeout = setTimeout(function () {
         _this.chooseNext = true;
       }, 1500);
@@ -520,7 +585,8 @@ __webpack_require__.r(__webpack_exports__);
           this.setMsg(1);
           return;
         }
-      }
+      } //   this.activePlayer.player1
+
 
       if (this.activePlayer.score > 21) {
         if (this.activePlayer.hasOwnProperty("bet")) {
@@ -554,7 +620,11 @@ __webpack_require__.r(__webpack_exports__);
 
       switch (result) {
         case 0:
-          clearTimeout(this.chooseNextTimeout);
+          if (this.chooseNextTimeout) {
+            clearTimeout(this.chooseNextTimeout);
+          } // can't break chips rule applies here (with 3:2 payout), not implemented (not defined what each chip is worth + color etc. in any case, it's hard to make clear without physical chips)
+
+
           this.setUserChips(this.user.bet * 2.5);
           this.resultMsg = "You got Blackjack!!";
           this.resultMsgStyle.visibility = "visible";
@@ -582,11 +652,17 @@ __webpack_require__.r(__webpack_exports__);
           }, 750);
           setTimeout(function () {
             _this3.resultMsgStyle.color = "black";
+          }, 900);
+          setTimeout(function () {
+            _this3.resultMsgStyle.color = "red";
+          }, 1050);
+          setTimeout(function () {
+            _this3.resultMsgStyle.color = "black";
           }, 1200);
           break;
 
         case 1:
-          // chooseNext: What you really want is after click no 2nd click until script is done (in case of "hanging"(?), thus on top of script)
+          // chooseNext: What you really want is after click no rapid 2nd click until script is done (in case of "hanging"(?), thus on top of script)
           this.chooseNext = false;
           this.pc.stand = true;
           this.resultMsg = "The Computer Wins";
@@ -616,6 +692,15 @@ __webpack_require__.r(__webpack_exports__);
           setTimeout(function () {
             _this3.nextRound();
           }, 2000);
+          setTimeout(function () {
+            _this3.resultMsgStyle.color = "blue";
+          }, 400);
+          setTimeout(function () {
+            _this3.resultMsgStyle.color = "green";
+          }, 800);
+          setTimeout(function () {
+            _this3.resultMsgStyle.color = "black";
+          }, 1200);
           break;
 
         case 4:
@@ -630,64 +715,76 @@ __webpack_require__.r(__webpack_exports__);
           break;
 
         default:
-          alert("SOMETHING WENT WRONG");
+          alert("SOMETHING WENT WRONG SETMSG SWITCH");
       }
     },
     nextRound: function nextRound() {
       var _this4 = this;
 
+      // if less than 25 playerchips, give info about registration and playing online etc.
       this.resultMsgStyle.visibility = "hidden";
       this.resultMsg = ".";
       this.resultMsgStyle.color = "black";
-      this.user.bet = 0;
       this.user.aces = 0;
       this.user.score = 0;
       this.user.stand = false;
+      this.pc.stand = false;
       this.pc.aces = 0;
       this.pc.score = 0;
-      this.pc.stand = false;
-      this.betMsg = "Place your Bid: ";
-      this.chooseMsg = "Choose: ";
       this.activePlayer = undefined;
-      this.removePcCardsInterval = setInterval(this.removePcCards, 200);
+      var timer = 0;
+      this.pc.cards.length >= this.user.cards.length ? timer = this.pc.cards.length * 200 : timer = this.user.cards.length * 200;
       setTimeout(function () {
-        _this4.removeUserCardsInterval = setInterval(_this4.removeUserCards, 200);
-      }, 200);
+        _this4.showScore = false;
+      }, 100);
       setTimeout(function () {
         _this4.betButtonDisabled = false;
-      }, 1000);
+        delete _this4.betButtonStyle.cursor;
+        _this4.betMsg = "Place your Bid: ";
+        _this4.chooseMsg = "Choose: ";
+        _this4.user.bet = 0;
+      }, timer + 200);
+      this.removePcCardsInterval = setInterval(this.removePcCardsIntervalHandler, 200);
+      setTimeout(function () {
+        _this4.removeUserCardsInterval = setInterval(_this4.removeUserCardsIntervalHandler, 200);
+      }, 200);
       this.newDeck();
       this.shuffleDeck();
     },
-    removePcCards: function removePcCards() {
+    removePcCardsIntervalHandler: function removePcCardsIntervalHandler() {
       if (this.pc.cards.length === 0) {
         clearInterval(this.removePcCardsInterval);
       } else {
         this.pc.cards.pop();
       }
     },
-    removeUserCards: function removeUserCards() {
+    removeUserCardsIntervalHandler: function removeUserCardsIntervalHandler() {
       if (this.user.cards.length === 0) {
         clearInterval(this.removeUserCardsInterval);
       } else {
         this.user.cards.pop();
       }
     },
-    playerStand: function playerStand() {
+    drawPcCardsIntervalHandler: function drawPcCardsIntervalHandler() {
+      if (this.pc.stand) {
+        clearInterval(this.drawPcCardsInterval);
+      } else {
+        this.draw();
+      }
+    },
+    stand: function stand() {
       this.chooseNext = false;
       this.user.stand = true;
       this.activePlayer = this.pc;
       this.pc.cards.pop();
-
-      while (!this.pc.stand) {
-        this.draw();
-      }
+      this.draw();
+      this.drawPcCardsInterval = setInterval(this.drawPcCardsIntervalHandler, 600);
     },
-    betButtonStyling: function betButtonStyling() {
-      if (this.user.bet !== 0) {
-        return this.disabledBetButtonStyle;
-      }
-    },
+    // betButtonStyling() {
+    //   if () {
+    //     return this.disabledBetButtonStyle;
+    //   }
+    // },
     reset: function reset() {
       localStorage.clear();
       location.reload();
@@ -2067,7 +2164,7 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", { staticClass: "box" }, [
+  return _c("div", { staticClass: "box has-text-centered" }, [
     _c(
       "section",
       {
@@ -2108,7 +2205,7 @@ var render = function() {
     _c("nav", { staticClass: "level" }, [
       _c(
         "div",
-        { staticClass: "level-item has-text-centered" },
+        { staticClass: "level-item" },
         [
           _c("div", { staticStyle: { height: "122px" } }),
           _vm._v(" "),
@@ -2124,9 +2221,7 @@ var render = function() {
                 opacity: "1",
                 cursor: "default"
               },
-              style: {
-                visibility: _vm.pc.cards.length >= 2 ? "visible" : "hidden"
-              },
+              style: { visibility: _vm.showScore ? "visible" : "hidden" },
               attrs: { disabled: "" }
             },
             [_vm._v(_vm._s(_vm.pc.score))]
@@ -2150,7 +2245,7 @@ var render = function() {
     _c("nav", { staticClass: "level" }, [
       _c(
         "div",
-        { staticClass: "level-item has-text-centered" },
+        { staticClass: "level-item" },
         [
           _c("div", { staticStyle: { height: "122px" } }),
           _vm._v(" "),
@@ -2166,9 +2261,7 @@ var render = function() {
                 opacity: "1",
                 cursor: "default"
               },
-              style: {
-                visibility: _vm.user.cards.length >= 2 ? "visible" : "hidden"
-              },
+              style: { visibility: _vm.showScore ? "visible" : "hidden" },
               attrs: { disabled: "" }
             },
             [_vm._v(_vm._s(_vm.user.score))]
@@ -2188,7 +2281,7 @@ var render = function() {
     ]),
     _vm._v(" "),
     _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
+      _c("div", { staticClass: "level-item" }, [
         _c("div", [
           _c("p", { staticClass: "title has-text-weight-bold" }, [
             _vm._v("You")
@@ -2217,7 +2310,17 @@ var render = function() {
                   ],
                   style: { color: _vm.updatingChipsValue < 0 ? "red" : "green" }
                 },
-                [_vm._v("( " + _vm._s(_vm.updatingChipsValue) + " )")]
+                [
+                  _vm._v(
+                    "( " +
+                      _vm._s(
+                        _vm.updatingChipsValue > 0
+                          ? "+" + _vm.updatingChipsValue
+                          : _vm.updatingChipsValue
+                      ) +
+                      " )"
+                  )
+                ]
               )
             ]
           )
@@ -2226,7 +2329,7 @@ var render = function() {
     ]),
     _vm._v(" "),
     _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
+      _c("div", { staticClass: "level-item" }, [
         _c("div", [
           _c("p", { staticClass: "title", style: _vm.resultMsgStyle }, [
             _vm._v(_vm._s(_vm.resultMsg))
@@ -2235,52 +2338,73 @@ var render = function() {
       ])
     ]),
     _vm._v(" "),
-    _c("nav", { staticClass: "level" }, [
-      _c(
-        "div",
-        { staticClass: "level-item has-text-centered" },
-        [
-          _c("div", { staticStyle: { height: "60px" } }),
-          _vm._v(" "),
-          _c(
-            "p",
-            { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
-            [_vm._v(_vm._s(_vm.betMsg))]
-          ),
-          _vm._v(" "),
-          _vm._l(_vm.bidButtons, function(bidButton) {
-            return _c(
-              "button",
-              {
-                directives: [
-                  {
-                    name: "show",
-                    rawName: "v-show",
-                    value:
-                      (_vm.user.chips >= bidButton.bid && !_vm.user.bet) ||
-                      _vm.user.bet === bidButton.bid,
-                    expression:
-                      "user.chips >= bidButton.bid && !user.bet || user.bet === bidButton.bid"
-                  }
-                ],
-                key: bidButton.bid,
-                staticClass: "button is-rounded",
-                class: ["button", "is-rounded", bidButton.size, bidButton.type],
-                style: [_vm.betButtonStyle, _vm.betButtonStyling()],
-                attrs: { disabled: _vm.betButtonDisabled },
-                on: {
-                  click: function($event) {
-                    return _vm.placeBet(bidButton.bid)
-                  }
-                }
-              },
-              [_vm._v(_vm._s(bidButton.bid))]
-            )
-          })
+    _c(
+      "nav",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.showBidButtons,
+            expression: "showBidButtons"
+          }
         ],
-        2
-      )
-    ]),
+        staticClass: "level"
+      },
+      [
+        _c(
+          "div",
+          { staticClass: "level-item" },
+          [
+            _c("div", { staticStyle: { height: "60px" } }),
+            _vm._v(" "),
+            _c(
+              "p",
+              {
+                staticClass: "heading",
+                staticStyle: { "margin-right": "20px" }
+              },
+              [_vm._v(_vm._s(_vm.betMsg))]
+            ),
+            _vm._v(" "),
+            _vm._l(_vm.bidButtons, function(bidButton) {
+              return _c(
+                "button",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value:
+                        (_vm.user.chips >= bidButton.bid && !_vm.user.bet) ||
+                        _vm.user.bet === bidButton.bid,
+                      expression:
+                        "user.chips >= bidButton.bid && !user.bet || user.bet === bidButton.bid"
+                    }
+                  ],
+                  key: bidButton.bid,
+                  class: [
+                    "button",
+                    "is-rounded",
+                    bidButton.size,
+                    bidButton.color
+                  ],
+                  style: [_vm.betButtonStyle],
+                  attrs: { disabled: _vm.betButtonDisabled },
+                  on: {
+                    click: function($event) {
+                      return _vm.placeBet(bidButton.bid)
+                    }
+                  }
+                },
+                [_vm._v(_vm._s(bidButton.bid))]
+              )
+            })
+          ],
+          2
+        )
+      ]
+    ),
     _vm._v(" "),
     _c(
       "nav",
@@ -2296,49 +2420,47 @@ var render = function() {
         staticClass: "level"
       },
       [
-        _c("div", { staticClass: "level-item has-text-centered" }, [
-          _c(
-            "p",
-            { staticClass: "heading", staticStyle: { "margin-right": "20px" } },
-            [_vm._v(_vm._s(_vm.chooseMsg))]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              staticClass: "button is-black",
-              style: [_vm.betButtonStyle],
-              on: {
-                click: function($event) {
-                  return _vm.draw()
-                }
-              }
-            },
-            [_vm._v("Draw")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            {
-              staticClass: "button is-light",
-              style: [_vm.betButtonStyle],
-              on: {
-                click: function($event) {
-                  return _vm.playerStand()
-                }
-              }
-            },
-            [_vm._v("Stand")]
-          ),
-          _vm._v(" "),
-          _c(
-            "button",
-            { staticClass: "button is-warning", style: [_vm.betButtonStyle] },
-            [_vm._v("Split")]
-          ),
-          _vm._v(" "),
-          _c("button", { staticClass: "button is-danger" }, [_vm._v("Double")])
-        ])
+        _c(
+          "div",
+          { staticClass: "level-item" },
+          [
+            _c(
+              "p",
+              {
+                staticClass: "heading",
+                staticStyle: { "font-weight": "bold", "margin-right": "20px" }
+              },
+              [_vm._v(_vm._s(_vm.chooseMsg))]
+            ),
+            _vm._v(" "),
+            _vm._l(_vm.chooseButtons, function(chooseButton) {
+              return _c(
+                "button",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value: chooseButton.show,
+                      expression: "chooseButton.show"
+                    }
+                  ],
+                  key: chooseButton.selected,
+                  class: ["button", "is-light", chooseButton.color],
+                  style: [_vm.chooseButtonStyle],
+                  attrs: { disabled: chooseButton.disabled },
+                  on: {
+                    click: function($event) {
+                      return _vm.selectedButton(chooseButton.selected)
+                    }
+                  }
+                },
+                [_vm._v(_vm._s(chooseButton.selected))]
+              )
+            })
+          ],
+          2
+        )
       ]
     )
   ])
@@ -2349,7 +2471,7 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
+      _c("div", { staticClass: "level-item" }, [
         _c("div", [
           _c("p", { staticClass: "title has-text-weight-bold" }, [
             _vm._v("Computer")
@@ -2363,7 +2485,7 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("nav", { staticClass: "level" }, [
-      _c("div", { staticClass: "level-item has-text-centered" }, [
+      _c("div", { staticClass: "level-item" }, [
         _c("div", [
           _c("p", { staticClass: "subtitle has-text-grey-light" }, [
             _vm._v("Dealer must draw to 16 and stand on 17")

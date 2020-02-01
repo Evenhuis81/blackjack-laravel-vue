@@ -1,5 +1,5 @@
 <template>
-  <div class="box">
+  <div class="box has-text-centered">
     <!-- <section class="hero" v-show="user.name"> -->
     <section class="hero" v-show="!user.name">
       <div class="hero-body">
@@ -12,7 +12,7 @@
     </section>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div>
           <p class="title has-text-weight-bold">Computer</p>
         </div>
@@ -20,13 +20,13 @@
     </nav>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div style="height: 122px;"></div>
         <div
           disabled
           style="font-weight: bold; width: 20px; margin-right: 10px; opacity: 1; cursor: default;"
           class="button is-rounded is-primary is-small has-text-black"
-          :style="{ visibility: pc.cards.length >= 2 ? 'visible' : 'hidden' }"
+          :style="{ visibility: showScore ? 'visible' : 'hidden' }"
         >{{ pc.score }}</div>
         <div v-for="(card, index) in pc.cards" :key="index">
           <img :src="pngCard(card)" alt="pngimage" style="height: 122px;" />
@@ -35,7 +35,7 @@
     </nav>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div>
           <p class="subtitle has-text-grey-light">Dealer must draw to 16 and stand on 17</p>
           <p
@@ -47,13 +47,13 @@
     </nav>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div style="height: 122px;"></div>
         <div
           disabled
           style="font-weight: bold; width: 20px; margin-right: 10px; opacity: 1; cursor: default;"
           class="button is-rounded is-primary is-small has-text-black"
-          :style="{ visibility: user.cards.length >= 2 ? 'visible' : 'hidden' }"
+          :style="{ visibility: showScore ? 'visible' : 'hidden' }"
         >{{ user.score }}</div>
         <div v-for="(card, index) in user.cards" :key="index">
           <img :src="pngCard(card)" alt="pngimage" style="height: 122px;" />
@@ -62,7 +62,7 @@
     </nav>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div>
           <p class="title has-text-weight-bold">You</p>
           <p class="title has-text-grey" style="border-top: 2px solid black">
@@ -70,22 +70,22 @@
             <span
               v-show="updatingChipsValue"
               :style="{ color: updatingChipsValue < 0 ? 'red' : 'green' }"
-            >( {{ updatingChipsValue }} )</span>
+            >( {{ updatingChipsValue > 0 ? "+" + updatingChipsValue : updatingChipsValue }} )</span>
           </p>
         </div>
       </div>
     </nav>
 
     <nav class="level">
-      <div class="level-item has-text-centered">
+      <div class="level-item">
         <div>
           <p class="title" :style="resultMsgStyle">{{ resultMsg }}</p>
         </div>
       </div>
     </nav>
 
-    <nav class="level">
-      <div class="level-item has-text-centered">
+    <nav class="level" v-show="showBidButtons">
+      <div class="level-item">
         <div style="height: 60px;"></div>
         <p class="heading" style="margin-right: 20px;">{{ betMsg }}</p>
         <button
@@ -93,23 +93,30 @@
           :key="bidButton.bid"
           @click="placeBet(bidButton.bid)"
           v-show="user.chips >= bidButton.bid && !user.bet || user.bet === bidButton.bid"
-          :style="[betButtonStyle, betButtonStyling()]"
+          :style="[betButtonStyle]"
           :disabled="betButtonDisabled"
-          class="button is-rounded"
-          :class="['button', 'is-rounded', bidButton.size, bidButton.type]"
+          :class="['button', 'is-rounded', bidButton.size, bidButton.color]"
         >{{ bidButton.bid }}</button>
       </div>
     </nav>
+
+    <!-- userOption, whatToDoNext, drawAndSuch, DrawStandSplitDouble, selectedUserOption, afterSetupOptionsUser, userIsActiveOption, DrawDecision ?? -->
     <nav class="level" v-show="chooseNext">
-      <div class="level-item has-text-centered">
-        <p class="heading" style="margin-right: 20px;">{{ chooseMsg }}</p>
-        <button @click="draw()" :style="[betButtonStyle]" class="button is-black">Draw</button>
-        <button @click="playerStand()" :style="[betButtonStyle]" class="button is-light">Stand</button>
-        <button :style="[betButtonStyle]" class="button is-warning">Split</button>
-        <button class="button is-danger">Double</button>
+      <div class="level-item">
+        <p class="heading" style="font-weight: bold; margin-right: 20px;">{{ chooseMsg }}</p>
+        <button
+          v-for="(chooseButton) in chooseButtons"
+          :key="chooseButton.selected"
+          @click="selectedButton(chooseButton.selected)"
+          v-show="chooseButton.show"
+          :style="[chooseButtonStyle]"
+          :disabled="chooseButton.disabled"
+          :class="['button', 'is-light', chooseButton.color]"
+        >{{ chooseButton.selected }}</button>
       </div>
     </nav>
   </div>
+  <!-- /box -->
 </template>
 
 <script>
@@ -122,20 +129,51 @@ export default {
   },
   data() {
     return {
+      chooseButtons: [
+        {
+          selected: "Draw",
+          show: true,
+          color: "is-info",
+          disabled: false
+        },
+        {
+          selected: "Stand",
+          show: true,
+          color: "is-success",
+          disabled: false
+        },
+        {
+          selected: "Split",
+          show: true,
+          color: "is-warning",
+          disabled: false
+        },
+        {
+          selected: "Double",
+          show: true,
+          color: "is-danger",
+          disabled: false
+        }
+      ],
+      showScore: false,
+      showBidButtons: true,
       resultMsg: ".",
       betMsg: "Place your Bid: ",
       chooseMsg: "Choose: ",
+      // showChooseButtons
       chooseNext: false,
       chooseNextTimeout: null,
+      drawPcCardsInterval: null,
       removePcCardsInterval: null,
       removeUserCardsInterval: null,
+      chooseButtonDisabled: false,
       betButtonDisabled: false,
       betButtonStyle: {
-        marginRight: "10px"
+        marginRight: "10px",
+        opacity: "1"
       },
-      disabledBetButtonStyle: {
-        opacity: "1",
-        cursor: "default"
+      chooseButtonStyle: {
+        marginRight: "15px"
       },
       resultMsgStyle: {
         visibility: "hidden",
@@ -145,22 +183,22 @@ export default {
         {
           bid: 25,
           size: "is-small",
-          type: "is-primary"
+          color: "is-primary"
         },
         {
           bid: 50,
           size: "is-normal",
-          type: "is-success"
+          color: "is-success"
         },
         {
           bid: 100,
           size: "is-medium",
-          type: "is-warning"
+          color: "is-warning"
         },
         {
           bid: 250,
           size: "is-large",
-          type: "is-danger"
+          color: "is-danger"
         }
       ],
       deck: [],
@@ -201,7 +239,33 @@ export default {
     };
   },
   methods: {
+    // can use same parameter as other switches?
+    selectedButton(chooseResult) {
+      switch (chooseResult) {
+        case "Draw":
+          this.draw();
+          break;
+        case "Stand":
+          this.stand();
+          break;
+        case "Split":
+          this.split();
+          break;
+        case "Double":
+          this.double();
+          break;
+        default:
+          alert("SOMETHING WENT WRONG IN SELECTEDBUTTON SWITCH");
+      }
+    },
+    split() {
+      //
+    },
+    double() {
+      //
+    },
     placeBet(bid) {
+      this.betButtonStyle.cursor = "default";
       this.activePlayer = this.pc;
       this.betMsg = "Your Bet: ";
       this.user.bet = bid;
@@ -217,6 +281,11 @@ export default {
       setTimeout(() => {
         this.pc.cards.push("blank");
       }, 900);
+
+      setTimeout(() => {
+        this.showScore = true;
+      }, 1350);
+      // choosenexttimeout variable must be set before setTimeout player draw 2nd card in case of blackjack so it can be removed
       this.chooseNextTimeout = setTimeout(() => {
         this.chooseNext = true;
       }, 1500);
@@ -288,6 +357,7 @@ export default {
           return;
         }
       }
+      //   this.activePlayer.player1
       if (this.activePlayer.score > 21) {
         if (this.activePlayer.hasOwnProperty("bet")) {
           this.setMsg(2);
@@ -316,7 +386,10 @@ export default {
     setMsg(result) {
       switch (result) {
         case 0:
-          clearTimeout(this.chooseNextTimeout);
+          if (this.chooseNextTimeout) {
+            clearTimeout(this.chooseNextTimeout);
+          }
+          // can't break chips rule applies here (with 3:2 payout), not implemented (not defined what each chip is worth + color etc. in any case, it's hard to make clear without physical chips)
           this.setUserChips(this.user.bet * 2.5);
           this.resultMsg = "You got Blackjack!!";
           this.resultMsgStyle.visibility = "visible";
@@ -343,10 +416,16 @@ export default {
           }, 750);
           setTimeout(() => {
             this.resultMsgStyle.color = "black";
+          }, 900);
+          setTimeout(() => {
+            this.resultMsgStyle.color = "red";
+          }, 1050);
+          setTimeout(() => {
+            this.resultMsgStyle.color = "black";
           }, 1200);
           break;
         case 1:
-          // chooseNext: What you really want is after click no 2nd click until script is done (in case of "hanging"(?), thus on top of script)
+          // chooseNext: What you really want is after click no rapid 2nd click until script is done (in case of "hanging"(?), thus on top of script)
           this.chooseNext = false;
           this.pc.stand = true;
           this.resultMsg = "The Computer Wins";
@@ -374,6 +453,15 @@ export default {
           setTimeout(() => {
             this.nextRound();
           }, 2000);
+          setTimeout(() => {
+            this.resultMsgStyle.color = "blue";
+          }, 400);
+          setTimeout(() => {
+            this.resultMsgStyle.color = "green";
+          }, 800);
+          setTimeout(() => {
+            this.resultMsgStyle.color = "black";
+          }, 1200);
           break;
         case 4:
           this.chooseNext = false;
@@ -386,61 +474,86 @@ export default {
           }, 2000);
           break;
         default:
-          alert("SOMETHING WENT WRONG");
+          alert("SOMETHING WENT WRONG SETMSG SWITCH");
       }
     },
     nextRound() {
+      // if less than 25 playerchips, give info about registration and playing online etc.
       this.resultMsgStyle.visibility = "hidden";
       this.resultMsg = ".";
       this.resultMsgStyle.color = "black";
-      this.user.bet = 0;
       this.user.aces = 0;
       this.user.score = 0;
       this.user.stand = false;
+      this.pc.stand = false;
       this.pc.aces = 0;
       this.pc.score = 0;
-      this.pc.stand = false;
-      this.betMsg = "Place your Bid: ";
-      this.chooseMsg = "Choose: ";
       this.activePlayer = undefined;
-      this.removePcCardsInterval = setInterval(this.removePcCards, 200);
+      let timer = 0;
+      this.pc.cards.length >= this.user.cards.length
+        ? (timer = this.pc.cards.length * 200)
+        : (timer = this.user.cards.length * 200);
       setTimeout(() => {
-        this.removeUserCardsInterval = setInterval(this.removeUserCards, 200);
-      }, 200);
+        this.showScore = false;
+      }, 100);
+
       setTimeout(() => {
         this.betButtonDisabled = false;
-      }, 1000);
+        delete this.betButtonStyle.cursor;
+        this.betMsg = "Place your Bid: ";
+        this.chooseMsg = "Choose: ";
+        this.user.bet = 0;
+      }, timer + 200);
+      this.removePcCardsInterval = setInterval(
+        this.removePcCardsIntervalHandler,
+        200
+      );
+      setTimeout(() => {
+        this.removeUserCardsInterval = setInterval(
+          this.removeUserCardsIntervalHandler,
+          200
+        );
+      }, 200);
       this.newDeck();
       this.shuffleDeck();
     },
-    removePcCards() {
+    removePcCardsIntervalHandler() {
       if (this.pc.cards.length === 0) {
         clearInterval(this.removePcCardsInterval);
       } else {
         this.pc.cards.pop();
       }
     },
-    removeUserCards() {
+    removeUserCardsIntervalHandler() {
       if (this.user.cards.length === 0) {
         clearInterval(this.removeUserCardsInterval);
       } else {
         this.user.cards.pop();
       }
     },
-    playerStand() {
+    drawPcCardsIntervalHandler() {
+      if (this.pc.stand) {
+        clearInterval(this.drawPcCardsInterval);
+      } else {
+        this.draw();
+      }
+    },
+    stand() {
       this.chooseNext = false;
       this.user.stand = true;
       this.activePlayer = this.pc;
       this.pc.cards.pop();
-      while (!this.pc.stand) {
-        this.draw();
-      }
+      this.draw();
+      this.drawPcCardsInterval = setInterval(
+        this.drawPcCardsIntervalHandler,
+        600
+      );
     },
-    betButtonStyling() {
-      if (this.user.bet !== 0) {
-        return this.disabledBetButtonStyle;
-      }
-    },
+    // betButtonStyling() {
+    //   if () {
+    //     return this.disabledBetButtonStyle;
+    //   }
+    // },
     reset() {
       localStorage.clear();
       location.reload();
