@@ -369,6 +369,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     localData: {
@@ -378,6 +382,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   data: function data() {
     return {
+      doubleBid: false,
       chooseButtons: [{
         selected: "Draw",
         show: true,
@@ -390,21 +395,19 @@ __webpack_require__.r(__webpack_exports__);
         disabled: false
       }, {
         selected: "Split",
-        show: true,
+        show: false,
         color: "is-warning",
         disabled: false
       }, {
         selected: "Double",
-        show: true,
+        show: false,
         color: "is-danger",
         disabled: false
       }],
       showScore: false,
-      showBidButtons: true,
       resultMsg: ".",
       betMsg: "Place your Bid: ",
       chooseMsg: "Choose: ",
-      // showChooseButtons
       chooseNext: false,
       chooseNextTimeout: null,
       drawPcCardsInterval: null,
@@ -464,11 +467,20 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   methods: {
-    // can use same parameter as other switches?
-    selectedButton: function selectedButton(chooseResult) {
-      switch (chooseResult) {
+    selectedButton: function selectedButton(result) {
+      var _this = this;
+
+      switch (result) {
         case "Draw":
-          this.draw();
+          this.chooseNext = false; //   how to remove repeat of next line when not needed (move to busted?)
+          //   this.chooseButtons[3].show = false;
+
+          this.chooseNextTimeout = setTimeout(function () {
+            _this.chooseNext = true;
+          }, 400);
+          setTimeout(function () {
+            _this.draw();
+          }, 200);
           break;
 
         case "Stand":
@@ -489,10 +501,13 @@ __webpack_require__.r(__webpack_exports__);
     },
     split: function split() {//
     },
-    "double": function double() {//
+    "double": function double() {
+      this.doubleBid = true;
+      this.setUserChips(this.user.bet, "subtract");
+      this.draw();
     },
     placeBet: function placeBet(bid) {
-      var _this = this;
+      var _this2 = this;
 
       this.betButtonStyle.cursor = "default";
       this.activePlayer = this.pc;
@@ -501,29 +516,30 @@ __webpack_require__.r(__webpack_exports__);
       this.betButtonDisabled = true;
       this.setUserChips(bid, "subtract");
       setTimeout(function () {
-        _this.draw();
+        _this2.draw();
       }, 300);
       setTimeout(function () {
-        _this.activePlayer = _this.user;
+        _this2.activePlayer = _this2.user;
 
-        _this.draw();
+        _this2.draw();
       }, 600);
       setTimeout(function () {
-        _this.pc.cards.push("blank");
+        _this2.pc.cards.push("blank");
       }, 900);
       setTimeout(function () {
-        _this.showScore = true;
+        _this2.showScore = true;
       }, 1350); // choosenexttimeout variable must be set before setTimeout player draw 2nd card in case of blackjack so it can be removed
 
       this.chooseNextTimeout = setTimeout(function () {
-        _this.chooseNext = true;
+        _this2.chooseButtons[3].show = true;
+        _this2.chooseNext = true;
       }, 1500);
       setTimeout(function () {
-        _this.draw();
+        _this2.draw();
       }, 1200);
     },
     setUserChips: function setUserChips(value, plusOrMin) {
-      var _this2 = this;
+      var _this3 = this;
 
       var newValue = undefined;
 
@@ -531,19 +547,19 @@ __webpack_require__.r(__webpack_exports__);
         newValue = this.user.chips - value;
         this.updatingChipsValue -= value;
         setTimeout(function () {
-          _this2.updatingChipsValue = 0;
+          _this3.updatingChipsValue = 0;
         }, 1000);
       } else {
         newValue = parseInt(this.user.chips) + value;
         this.updatingChipsValue += value;
         setTimeout(function () {
-          _this2.updatingChipsValue = 0;
+          _this3.updatingChipsValue = 0;
         }, 1000);
       }
 
       localStorage.setItem("userchips", newValue);
       setTimeout(function () {
-        _this2.$emit("setLocalChipsData", "");
+        _this3.$emit("setLocalChipsData", "");
       }, 1000);
     },
     draw: function draw() {
@@ -614,9 +630,13 @@ __webpack_require__.r(__webpack_exports__);
           return;
         }
       }
+
+      if (this.activePlayer.hasOwnProperty("bet") && this.doubleBid) {
+        this.stand();
+      }
     },
     setMsg: function setMsg(result) {
-      var _this3 = this;
+      var _this4 = this;
 
       switch (result) {
         case 0:
@@ -629,35 +649,35 @@ __webpack_require__.r(__webpack_exports__);
           this.resultMsg = "You got Blackjack!!";
           this.resultMsgStyle.visibility = "visible";
           setTimeout(function () {
-            _this3.resultMsgStyle.visibility = "hidden";
-            _this3.resultMsg = ".";
+            _this4.resultMsgStyle.visibility = "hidden";
+            _this4.resultMsg = ".";
 
-            _this3.nextRound();
+            _this4.nextRound();
           }, 2000); // Write for loop with modulo and timeout increase variable
 
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "red";
+            _this4.resultMsgStyle.color = "red";
           }, 150);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "black";
+            _this4.resultMsgStyle.color = "black";
           }, 300);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "red";
+            _this4.resultMsgStyle.color = "red";
           }, 450);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "black";
+            _this4.resultMsgStyle.color = "black";
           }, 600);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "red";
+            _this4.resultMsgStyle.color = "red";
           }, 750);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "black";
+            _this4.resultMsgStyle.color = "black";
           }, 900);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "red";
+            _this4.resultMsgStyle.color = "red";
           }, 1050);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "black";
+            _this4.resultMsgStyle.color = "black";
           }, 1200);
           break;
 
@@ -669,17 +689,22 @@ __webpack_require__.r(__webpack_exports__);
           this.resultMsgStyle.color = "red";
           this.resultMsgStyle.visibility = "visible";
           setTimeout(function () {
-            _this3.nextRound();
+            _this4.nextRound();
           }, 2000);
           break;
 
         case 2:
+          if (this.chooseNextTimeout) {
+            clearTimeout(this.chooseNextTimeout);
+          }
+
           this.chooseNext = false;
+          this.chooseButtons[3].show = false;
           this.resultMsg = "Busted!";
           this.resultMsgStyle.color = "red";
           this.resultMsgStyle.visibility = "visible";
           setTimeout(function () {
-            _this3.nextRound();
+            _this4.nextRound();
           }, 2000);
           break;
 
@@ -690,16 +715,16 @@ __webpack_require__.r(__webpack_exports__);
           this.resultMsg = "Victory";
           this.resultMsgStyle.visibility = "visible";
           setTimeout(function () {
-            _this3.nextRound();
+            _this4.nextRound();
           }, 2000);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "blue";
+            _this4.resultMsgStyle.color = "blue";
           }, 400);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "green";
+            _this4.resultMsgStyle.color = "green";
           }, 800);
           setTimeout(function () {
-            _this3.resultMsgStyle.color = "black";
+            _this4.resultMsgStyle.color = "black";
           }, 1200);
           break;
 
@@ -710,7 +735,7 @@ __webpack_require__.r(__webpack_exports__);
           this.resultMsgStyle.color = "purple";
           this.resultMsgStyle.visibility = "visible";
           setTimeout(function () {
-            _this3.nextRound();
+            _this4.nextRound();
           }, 2000);
           break;
 
@@ -719,7 +744,7 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     nextRound: function nextRound() {
-      var _this4 = this;
+      var _this5 = this;
 
       // if less than 25 playerchips, give info about registration and playing online etc.
       this.resultMsgStyle.visibility = "hidden";
@@ -735,18 +760,19 @@ __webpack_require__.r(__webpack_exports__);
       var timer = 0;
       this.pc.cards.length >= this.user.cards.length ? timer = this.pc.cards.length * 200 : timer = this.user.cards.length * 200;
       setTimeout(function () {
-        _this4.showScore = false;
+        _this5.showScore = false;
       }, 100);
       setTimeout(function () {
-        _this4.betButtonDisabled = false;
-        delete _this4.betButtonStyle.cursor;
-        _this4.betMsg = "Place your Bid: ";
-        _this4.chooseMsg = "Choose: ";
-        _this4.user.bet = 0;
+        _this5.doubleBid = false;
+        _this5.betButtonDisabled = false;
+        delete _this5.betButtonStyle.cursor;
+        _this5.betMsg = "Place your Bid: ";
+        _this5.chooseMsg = "Choose: ";
+        _this5.user.bet = 0;
       }, timer + 200);
       this.removePcCardsInterval = setInterval(this.removePcCardsIntervalHandler, 200);
       setTimeout(function () {
-        _this4.removeUserCardsInterval = setInterval(_this4.removeUserCardsIntervalHandler, 200);
+        _this5.removeUserCardsInterval = setInterval(_this5.removeUserCardsIntervalHandler, 200);
       }, 200);
       this.newDeck();
       this.shuffleDeck();
@@ -773,11 +799,15 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     stand: function stand() {
+      var _this6 = this;
+
       this.chooseNext = false;
+      this.chooseButtons[3].show = false;
       this.user.stand = true;
       this.activePlayer = this.pc;
-      this.pc.cards.pop();
-      this.draw();
+      setTimeout(function () {
+        _this6.pc.cards.pop();
+      }, 600);
       this.drawPcCardsInterval = setInterval(this.drawPcCardsIntervalHandler, 600);
     },
     // betButtonStyling() {
@@ -820,6 +850,12 @@ __webpack_require__.r(__webpack_exports__);
         this.deck[location2] = tmp;
       }
     }
+  },
+  computed: {// userDoubleDown() {
+    //   if (this.user.cards.length === 2) {
+    //       if (user.cards[0] ===
+    //   }
+    // }
   },
   watch: {
     localData: function localData(newVal) {
@@ -2338,131 +2374,120 @@ var render = function() {
       ])
     ]),
     _vm._v(" "),
-    _c(
-      "nav",
-      {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.showBidButtons,
-            expression: "showBidButtons"
-          }
-        ],
-        staticClass: "level"
-      },
-      [
-        _c(
-          "div",
-          { staticClass: "level-item" },
-          [
-            _c("div", { staticStyle: { height: "60px" } }),
-            _vm._v(" "),
-            _c(
-              "p",
+    _c("nav", { staticClass: "level" }, [
+      _c(
+        "div",
+        { staticClass: "level-item" },
+        [
+          _c("div", { staticStyle: { height: "60px" } }),
+          _vm._v(" "),
+          _c("p", { staticStyle: { "margin-right": "20px" } }, [
+            _vm._v(_vm._s(_vm.betMsg))
+          ]),
+          _vm._v(" "),
+          _vm._l(_vm.bidButtons, function(bidButton) {
+            return _c(
+              "button",
               {
-                staticClass: "heading",
-                staticStyle: { "margin-right": "20px" }
-              },
-              [_vm._v(_vm._s(_vm.betMsg))]
-            ),
-            _vm._v(" "),
-            _vm._l(_vm.bidButtons, function(bidButton) {
-              return _c(
-                "button",
-                {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value:
-                        (_vm.user.chips >= bidButton.bid && !_vm.user.bet) ||
-                        _vm.user.bet === bidButton.bid,
-                      expression:
-                        "user.chips >= bidButton.bid && !user.bet || user.bet === bidButton.bid"
-                    }
-                  ],
-                  key: bidButton.bid,
-                  class: [
-                    "button",
-                    "is-rounded",
-                    bidButton.size,
-                    bidButton.color
-                  ],
-                  style: [_vm.betButtonStyle],
-                  attrs: { disabled: _vm.betButtonDisabled },
-                  on: {
-                    click: function($event) {
-                      return _vm.placeBet(bidButton.bid)
-                    }
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value:
+                      (_vm.user.chips >= bidButton.bid && !_vm.user.bet) ||
+                      _vm.user.bet === bidButton.bid,
+                    expression:
+                      "user.chips >= bidButton.bid && !user.bet || user.bet === bidButton.bid"
                   }
-                },
-                [_vm._v(_vm._s(bidButton.bid))]
-              )
-            })
-          ],
-          2
-        )
-      ]
-    ),
+                ],
+                key: bidButton.bid,
+                class: [
+                  "button",
+                  "is-rounded",
+                  bidButton.size,
+                  bidButton.color
+                ],
+                style: [_vm.betButtonStyle],
+                attrs: { disabled: _vm.betButtonDisabled },
+                on: {
+                  click: function($event) {
+                    return _vm.placeBet(bidButton.bid)
+                  }
+                }
+              },
+              [
+                _vm._v(
+                  _vm._s(_vm.doubleBid ? bidButton.bid * 2 : bidButton.bid)
+                )
+              ]
+            )
+          }),
+          _vm._v(" "),
+          _c(
+            "p",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: _vm.doubleBid,
+                  expression: "doubleBid"
+                }
+              ]
+            },
+            [_vm._v("(double)")]
+          )
+        ],
+        2
+      )
+    ]),
     _vm._v(" "),
-    _c(
-      "nav",
-      {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.chooseNext,
-            expression: "chooseNext"
-          }
-        ],
-        staticClass: "level"
-      },
-      [
-        _c(
-          "div",
-          { staticClass: "level-item" },
-          [
-            _c(
-              "p",
+    _c("nav", { staticClass: "level" }, [
+      _c(
+        "div",
+        { staticClass: "level-item" },
+        [
+          _c(
+            "p",
+            {
+              staticClass: "heading",
+              staticStyle: { "font-weight": "bold", "margin-right": "20px" }
+            },
+            [_vm._v(_vm._s(_vm.chooseNext ? _vm.chooseMsg : ""))]
+          ),
+          _vm._v(" "),
+          _vm._l(_vm.chooseButtons, function(chooseButton) {
+            return _c(
+              "button",
               {
-                staticClass: "heading",
-                staticStyle: { "font-weight": "bold", "margin-right": "20px" }
-              },
-              [_vm._v(_vm._s(_vm.chooseMsg))]
-            ),
-            _vm._v(" "),
-            _vm._l(_vm.chooseButtons, function(chooseButton) {
-              return _c(
-                "button",
-                {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: chooseButton.show,
-                      expression: "chooseButton.show"
-                    }
-                  ],
-                  key: chooseButton.selected,
-                  class: ["button", "is-light", chooseButton.color],
-                  style: [_vm.chooseButtonStyle],
-                  attrs: { disabled: chooseButton.disabled },
-                  on: {
-                    click: function($event) {
-                      return _vm.selectedButton(chooseButton.selected)
-                    }
+                directives: [
+                  {
+                    name: "show",
+                    rawName: "v-show",
+                    value: chooseButton.show,
+                    expression: "chooseButton.show"
                   }
-                },
-                [_vm._v(_vm._s(chooseButton.selected))]
-              )
-            })
-          ],
-          2
-        )
-      ]
-    )
+                ],
+                key: chooseButton.selected,
+                class: ["button", "is-light", chooseButton.color],
+                style: [
+                  _vm.chooseButtonStyle,
+                  { visibility: _vm.chooseNext ? "visible" : "hidden" }
+                ],
+                attrs: { disabled: chooseButton.disabled },
+                on: {
+                  click: function($event) {
+                    return _vm.selectedButton(chooseButton.selected)
+                  }
+                }
+              },
+              [_vm._v(_vm._s(chooseButton.selected))]
+            )
+          })
+        ],
+        2
+      )
+    ])
   ])
 }
 var staticRenderFns = [

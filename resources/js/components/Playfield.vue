@@ -84,10 +84,10 @@
       </div>
     </nav>
 
-    <nav class="level" v-show="showBidButtons">
+    <nav class="level">
       <div class="level-item">
         <div style="height: 60px;"></div>
-        <p class="heading" style="margin-right: 20px;">{{ betMsg }}</p>
+        <p style="margin-right: 20px;">{{ betMsg }}</p>
         <button
           v-for="bidButton in bidButtons"
           :key="bidButton.bid"
@@ -96,20 +96,24 @@
           :style="[betButtonStyle]"
           :disabled="betButtonDisabled"
           :class="['button', 'is-rounded', bidButton.size, bidButton.color]"
-        >{{ bidButton.bid }}</button>
+        >{{ doubleBid ? bidButton.bid * 2 : bidButton.bid }}</button>
+        <p v-show="doubleBid">(double)</p>
       </div>
     </nav>
 
     <!-- userOption, whatToDoNext, drawAndSuch, DrawStandSplitDouble, selectedUserOption, afterSetupOptionsUser, userIsActiveOption, DrawDecision ?? -->
-    <nav class="level" v-show="chooseNext">
+    <nav class="level">
       <div class="level-item">
-        <p class="heading" style="font-weight: bold; margin-right: 20px;">{{ chooseMsg }}</p>
+        <p
+          class="heading"
+          style="font-weight: bold; margin-right: 20px;"
+        >{{ chooseNext ? chooseMsg : "" }}</p>
         <button
           v-for="(chooseButton) in chooseButtons"
           :key="chooseButton.selected"
           @click="selectedButton(chooseButton.selected)"
           v-show="chooseButton.show"
-          :style="[chooseButtonStyle]"
+          :style="[chooseButtonStyle, { visibility: chooseNext ? 'visible' : 'hidden'}]"
           :disabled="chooseButton.disabled"
           :class="['button', 'is-light', chooseButton.color]"
         >{{ chooseButton.selected }}</button>
@@ -129,6 +133,7 @@ export default {
   },
   data() {
     return {
+      doubleBid: false,
       chooseButtons: [
         {
           selected: "Draw",
@@ -144,23 +149,21 @@ export default {
         },
         {
           selected: "Split",
-          show: true,
+          show: false,
           color: "is-warning",
           disabled: false
         },
         {
           selected: "Double",
-          show: true,
+          show: false,
           color: "is-danger",
           disabled: false
         }
       ],
       showScore: false,
-      showBidButtons: true,
       resultMsg: ".",
       betMsg: "Place your Bid: ",
       chooseMsg: "Choose: ",
-      // showChooseButtons
       chooseNext: false,
       chooseNextTimeout: null,
       drawPcCardsInterval: null,
@@ -239,11 +242,18 @@ export default {
     };
   },
   methods: {
-    // can use same parameter as other switches?
-    selectedButton(chooseResult) {
-      switch (chooseResult) {
+    selectedButton(result) {
+      switch (result) {
         case "Draw":
-          this.draw();
+          this.chooseNext = false;
+          //   how to remove repeat of next line when not needed (move to busted?)
+          //   this.chooseButtons[3].show = false;
+          this.chooseNextTimeout = setTimeout(() => {
+            this.chooseNext = true;
+          }, 400);
+          setTimeout(() => {
+            this.draw();
+          }, 200);
           break;
         case "Stand":
           this.stand();
@@ -262,7 +272,9 @@ export default {
       //
     },
     double() {
-      //
+      this.doubleBid = true;
+      this.setUserChips(this.user.bet, "subtract");
+      this.draw();
     },
     placeBet(bid) {
       this.betButtonStyle.cursor = "default";
@@ -287,6 +299,7 @@ export default {
       }, 1350);
       // choosenexttimeout variable must be set before setTimeout player draw 2nd card in case of blackjack so it can be removed
       this.chooseNextTimeout = setTimeout(() => {
+        this.chooseButtons[3].show = true;
         this.chooseNext = true;
       }, 1500);
       setTimeout(() => {
@@ -358,6 +371,7 @@ export default {
         }
       }
       //   this.activePlayer.player1
+
       if (this.activePlayer.score > 21) {
         if (this.activePlayer.hasOwnProperty("bet")) {
           this.setMsg(2);
@@ -381,6 +395,9 @@ export default {
           this.setMsg(1);
           return;
         }
+      }
+      if (this.activePlayer.hasOwnProperty("bet") && this.doubleBid) {
+        this.stand();
       }
     },
     setMsg(result) {
@@ -436,7 +453,11 @@ export default {
           }, 2000);
           break;
         case 2:
+          if (this.chooseNextTimeout) {
+            clearTimeout(this.chooseNextTimeout);
+          }
           this.chooseNext = false;
+          this.chooseButtons[3].show = false;
           this.resultMsg = "Busted!";
           this.resultMsgStyle.color = "red";
           this.resultMsgStyle.visibility = "visible";
@@ -498,6 +519,7 @@ export default {
       }, 100);
 
       setTimeout(() => {
+        this.doubleBid = false;
         this.betButtonDisabled = false;
         delete this.betButtonStyle.cursor;
         this.betMsg = "Place your Bid: ";
@@ -540,10 +562,12 @@ export default {
     },
     stand() {
       this.chooseNext = false;
+      this.chooseButtons[3].show = false;
       this.user.stand = true;
       this.activePlayer = this.pc;
-      this.pc.cards.pop();
-      this.draw();
+      setTimeout(() => {
+        this.pc.cards.pop();
+      }, 600);
       this.drawPcCardsInterval = setInterval(
         this.drawPcCardsIntervalHandler,
         600
@@ -584,6 +608,13 @@ export default {
         this.deck[location2] = tmp;
       }
     }
+  },
+  computed: {
+    // userDoubleDown() {
+    //   if (this.user.cards.length === 2) {
+    //       if (user.cards[0] ===
+    //   }
+    // }
   },
   watch: {
     localData: function(newVal) {
