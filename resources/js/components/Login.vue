@@ -1,7 +1,9 @@
+<!-- verwijder loze commentaren -->
 <template>
   <div class="content">
     <div class="title m-b-md">Blackjack</div>
 
+    <!-- dit menu kan er uit -->
     <div class="links">
       <a href="https://laravel.com/docs">What?</a>
       <a href="https://laracasts.com">Why?</a>
@@ -12,6 +14,7 @@
     </div>
 
     <div class="play">
+        <!-- kies duidelijke naam, bijv. showLoginForm, ipv activateModal -->
       <button @click="activateModal" class="button is-dark is-large">Play Game</button>
     </div>
     <div class="modal" :class="{ 'is-active': modalIsActive }">
@@ -19,8 +22,10 @@
       <div class="modal-card">
         <header class="modal-card-head">
           <p class="modal-card-title">Enter Username</p>
+          <!-- kies duidelijke naam, bijv. hideLoginForm, ipv deactivateModal -->
           <button @click="deactivateModal" class="delete" aria-label="close"></button>
         </header>
+        <!-- gebruik @submit.prevent i.p.v. preventDefault -->
         <form @submit="checkForm">
           <section class="modal-card-body">
             <div class="control has-text-centered">
@@ -34,10 +39,12 @@
               />
               <!-- <input type="hidden" name="_token" :value="csrf" /> -->
             </div>
+            <!-- gebruik geen hard-coded array indexen want foutgevoelig en niet dynamisch -->
             <p v-if="errors.length" class="help is-danger">{{ errors[0] }}</p>
             <p v-else class="help">at least 3 characters</p>
           </section>
           <footer class="modal-card-foot">
+            <!-- encode speciale karakters zoals ampersand: &amp; -->
             <button type="submit" value="submit" class="button is-success">Save & Play</button>
             <!-- <button @click="deactivateModal" class="button">Cancel</button> -->
           </footer>
@@ -55,7 +62,7 @@ export default {
       //     .querySelector('meta[name="csrf-token"]')
       //     .getAttribute("content"),
       errors: [],
-      userName: null,
+      userName: null,           // maak string velden altijd default '' i.p.v. null, want null.length geeft error (zie browser console)
       modalIsActive: false
     };
   },
@@ -73,7 +80,10 @@ export default {
         if (localStorage) {
           localStorage.setItem("username", this.userName);
           localStorage.setItem("userchips", 1000);
-          this.$emit("setLocalData", "");
+          // na 1 keer spelen werkt het spel niet meer omdat ik dan 0 punten heb (in localStorage). Er is geen optie om een game (punten) te resetten,
+          // ik moet nu handmatig mijn localStorage legen voordat ik een nieuw spel kan spelen!
+          // tip: verplaats puntentoekenning en logincredentials van Login naar App component en voeg een reset / logout knop toe aan het App component om een nieuw spel te kunnen starten
+          this.$emit("setLocalData", "");   // kies duidelijke naam voor custom event, bijv. inputUserCredentials. Geef de username mee zodat het centrale App component deze kan setten in de localStorage, evenals de userchips. Ditzelfde component kan dan bij een reset / logout deze data unsetten. Zo houd je de data centraal in App.vue en is het Login.vue component alleen voor de inlogactie zelf.
           return;
         } else {
           alert(

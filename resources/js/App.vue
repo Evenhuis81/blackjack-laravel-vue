@@ -34,6 +34,8 @@ export default {
     }
   },
   mounted: function() {
+    // je kunt wel een user login hervatten als er een username in localStorage staat, maar roep dan een initialize functie aan die de chipcount reset.
+    // dezelfde initialize functie kun je ook voor je login event gebruiken
     if (localStorage.getItem("username")) {
       this.userName = localStorage.getItem("username");
       this.userChips = localStorage.getItem("userchips");
@@ -42,5 +44,6 @@ export default {
 };
 </script>
 
+<!-- lege styling weglaten -->
 <style scoped>
 </style>

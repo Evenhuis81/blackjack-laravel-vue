@@ -131,6 +131,8 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   mounted: function mounted() {
+    // je kunt wel een user login hervatten als er een username in localStorage staat, maar roep dan een initialize functie aan die de chipcount reset.
+    // dezelfde initialize functie kun je ook voor je login event gebruiken
     if (localStorage.getItem("username")) {
       this.userName = localStorage.getItem("username");
       this.userChips = localStorage.getItem("userchips");
@@ -198,6 +200,13 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -206,6 +215,7 @@ __webpack_require__.r(__webpack_exports__);
       //     .getAttribute("content"),
       errors: [],
       userName: null,
+      // maak string velden altijd default '' i.p.v. null, want null.length geeft error (zie browser console)
       modalIsActive: false
     };
   },
@@ -223,8 +233,12 @@ __webpack_require__.r(__webpack_exports__);
       if (this.userName.length > 2) {
         if (localStorage) {
           localStorage.setItem("username", this.userName);
-          localStorage.setItem("userchips", 1000);
-          this.$emit("setLocalData", "");
+          localStorage.setItem("userchips", 1000); // na 1 keer spelen werkt het spel niet meer omdat ik dan 0 punten heb (in localStorage). Er is geen optie om een game (punten) te resetten,
+          // ik moet nu handmatig mijn localStorage legen voordat ik een nieuw spel kan spelen!
+          // tip: verplaats puntentoekenning en logincredentials van Login naar App component en voeg een reset / logout knop toe aan het App component om een nieuw spel te kunnen starten
+
+          this.$emit("setLocalData", ""); // kies duidelijke naam voor custom event, bijv. inputUserCredentials. Geef de username mee zodat het centrale App component deze kan setten in de localStorage, evenals de userchips. Ditzelfde component kan dan bij een reset / logout deze data unsetten. Zo houd je de data centraal in App.vue en is het Login.vue component alleen voor de inlogactie zelf.
+
           return;
         } else {
           alert("No support. Use a fallback such as browser cookies or store on the server.");
@@ -14925,8 +14939,8 @@ __webpack_require__.r(__webpack_exports__);
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vuejs\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! C:\Laragon\www\blackjack-laravel-vuejs\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! /Users/j.postema/code/laravel/blackjack-laravel-vue/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /Users/j.postema/code/laravel/blackjack-laravel-vue/resources/sass/app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
